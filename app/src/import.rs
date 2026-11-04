@@ -126,7 +126,7 @@ pub fn transcribe_pcm(
         raw.append(&mut produced);
         position = end;
         chunk_index += 1;
-        if chunk_index % 20 == 0 {
+        if chunk_index.is_multiple_of(20) {
             on_fraction((chunk_index as f32 / total_chunks as f32).min(1.0));
         }
     }
