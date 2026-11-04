@@ -22,6 +22,8 @@ UNCHANGED_ENGLISH = {
     " {}", " / {}", "• {}", "→ {}", "Version {}",
     # Brand plus Foundation-localized open-set locale data.
     "Apple Speech", "Apple Speech ({})", "Apple Speech — {} [{}]",
+    # Meeting Notes AI: brand names
+    "Ollama Cloud",
 }
 
 

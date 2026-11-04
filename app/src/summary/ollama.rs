@@ -224,8 +224,7 @@ async fn fetch_native_context_length(
     url: &str,
     model: &str,
 ) -> NativeContextLookup {
-    let resp = match client
-        .post(format!("{url}/api/show"))
+    let resp = match with_cloud_auth(client.post(format!("{url}/api/show")), url)
         .timeout(Duration::from_secs(SHOW_TIMEOUT_SECS))
         .json(&serde_json::json!({ "model": model }))
         .send()
@@ -342,7 +341,10 @@ pub async fn check_available(base_url: Option<&str>) -> (bool, Vec<String>) {
         Err(_) => return (false, Vec::new()),
     };
 
-    match client.get(format!("{url}/api/tags")).send().await {
+    match with_cloud_auth(client.get(format!("{url}/api/tags")), url)
+        .send()
+        .await
+    {
         Ok(resp) if resp.status().is_success() => {
             if let Ok(tags) = resp.json::<TagsResponse>().await {
                 let models = tags.models.into_iter().map(|m| m.name).collect::<Vec<_>>();
@@ -446,14 +448,13 @@ pub async fn generate_stream(
         },
     };
     let result = async {
-        let resp = client
-            .post(format!("{url}/api/generate"))
+        let resp = with_cloud_auth(client.post(format!("{url}/api/generate")), url)
             .json(&body)
             .send()
             .await
             .map_err(|e| format!("Ollama request: {e}"))?;
         if !resp.status().is_success() {
-            return Err(format!("Ollama error: {}", resp.status()));
+            return Err(generate_status_error(url, resp.status()));
         }
 
         let mut full_text = String::new();
@@ -490,7 +491,7 @@ pub async fn generate_stream(
         );
 
         Ok(GenerateOutput {
-            text: full_text,
+            text: without_reasoning(full_text),
             eval_count,
         })
     }
@@ -507,6 +508,41 @@ fn record_measured_tokens(line: &[u8], measurement: Option<&super::metrics::Call
         && chunk.done
     {
         measurement.tokens(chunk.prompt_eval_count, chunk.eval_count);
+    }
+}
+
+/// Attach the Ollama Cloud API key, but only to requests for the official
+/// `https://ollama.com` endpoint (see `mna_core::ollama_cloud`). Local and
+/// self-hosted servers never receive the key.
+fn with_cloud_auth(builder: reqwest::RequestBuilder, url: &str) -> reqwest::RequestBuilder {
+    if !mna_core::ollama_cloud::is_ollama_cloud_url(url) {
+        return builder;
+    }
+    let key = crate::keychain::ollama_cloud_api_key();
+    match mna_core::ollama_cloud::authorization_header(url, key.as_deref()) {
+        Some(value) => builder.header(reqwest::header::AUTHORIZATION, value),
+        None => builder,
+    }
+}
+
+/// Error text for a failed `/api/generate` status. Ollama Cloud gets a
+/// specific hint (API key, usage limit, unknown model).
+fn generate_status_error(url: &str, status: reqwest::StatusCode) -> String {
+    if mna_core::ollama_cloud::is_ollama_cloud_url(url)
+        && let Some(message) = mna_core::ollama_cloud::describe_cloud_status(status.as_u16())
+    {
+        return message.to_string();
+    }
+    format!("Ollama error: {status}")
+}
+
+/// Reasoning models (e.g. DeepSeek) may put `<think>...</think>` into the
+/// answer; only the answer is used.
+fn without_reasoning(text: String) -> String {
+    if text.to_ascii_lowercase().contains("<think>") {
+        mna_core::ollama_cloud::strip_reasoning(&text)
+    } else {
+        text
     }
 }
 
@@ -635,6 +671,11 @@ pub async fn pull_model(
     model: &str,
     on_progress: impl Fn(OllamaPullProgress),
 ) -> Result<(), String> {
+    if mna_core::ollama_cloud::is_ollama_cloud_url(url) {
+        return Err(
+            "Ollama Cloud models do not need to be downloaded. Choose one from the list.".into(),
+        );
+    }
     let model = model.trim();
     if model.is_empty() {
         return Err("No Ollama model specified to download".into());

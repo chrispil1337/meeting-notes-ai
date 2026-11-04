@@ -9,6 +9,8 @@ export component ThemedLineEdit inherits Rectangle {
     in property <string> control-label: root.placeholder;
     // 14px everywhere in Settings; the meeting title edits at its own size.
     in property <TypographyStyle> typography: Typography.body;
+    // Meeting Notes AI: `password` masks secrets such as the Ollama Cloud key.
+    in property <InputType> input-type: InputType.text;
 
     callback edited(string);
     callback accepted(string);
@@ -38,6 +40,7 @@ export component ThemedLineEdit inherits Rectangle {
         color: Theme.text-secondary;
         vertical-alignment: center;
         single-line: true;
+        input-type: root.input-type;
         enabled: root.enabled;
         accessible-label: root.control-label;
         edited => { root.edited(self.text); }

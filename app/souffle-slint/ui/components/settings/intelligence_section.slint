@@ -5,6 +5,7 @@ import { Theme } from "../../theme.slint";
 import { ThemedButton } from "../themed_button.slint";
 import { ThemedComboBox } from "../themed_combo.slint";
 import { ThemedLineEdit } from "../themed_line_edit.slint";
+import { ThemedSwitch } from "../themed_switch.slint";
 import { AppleIntelligenceUnavailableReason, SummaryProvider } from "../../types.slint";
 import { StatusIndicator } from "status_indicator.slint";
 
@@ -34,6 +35,9 @@ export component IntelligenceSection inherits VerticalLayout {
     in property <string> recommended-model;
     in property <string> refresh-error;
     in property <string> unusable-message; // "" when the chosen provider can run
+    // Meeting Notes AI: Ollama Cloud (https://ollama.com) instead of a local server
+    in property <bool> ollama-cloud-enabled;
+    in property <bool> ollama-cloud-key-set;
 
     callback summary-provider-changed(SummaryProvider);
     callback ollama-url-changed(string);
@@ -41,6 +45,8 @@ export component IntelligenceSection inherits VerticalLayout {
     callback retry-requested();
     callback download-recommended-requested();
     callback open-apple-intelligence-settings-requested();
+    callback ollama-cloud-toggled(bool);
+    callback ollama-cloud-key-submitted(string);
 
     pure function provider-label(value: SummaryProvider) -> string {
         if value == SummaryProvider.apple-intelligence { return @tr("Apple Intelligence"); }
@@ -161,6 +167,41 @@ export component IntelligenceSection inherits VerticalLayout {
     }
 
     SettingsField {
+        label: @tr("Ollama Cloud");
+        description: @tr("Utilise les modèles hébergés par Ollama (ollama.com), par exemple DeepSeek, sans installation locale. Les transcriptions sont alors envoyées à Ollama pour être résumées.");
+
+        ThemedSwitch {
+            control-label: @tr("Ollama Cloud");
+            checked: root.ollama-cloud-enabled;
+            toggled(value) => { root.ollama-cloud-toggled(value); }
+        }
+    }
+
+    if root.ollama-cloud-enabled: SettingsField {
+        label: @tr("Clé API Ollama Cloud");
+        description: root.ollama-cloud-key-set
+            ? @tr("Clé enregistrée dans le trousseau macOS. Saisissez une nouvelle clé pour la remplacer.")
+            : @tr("Créez une clé sur ollama.com/settings/keys, collez-la ici puis appuyez sur Entrée. Elle est enregistrée dans le trousseau macOS.");
+
+        ThemedLineEdit {
+            width: Theme.settings-control-width;
+            control-label: @tr("Clé API Ollama Cloud");
+            placeholder: root.ollama-cloud-key-set ? @tr("Clé enregistrée") : @tr("Coller la clé API");
+            input-type: InputType.password;
+            accepted(value) => {
+                root.ollama-cloud-key-submitted(value);
+                self.text = "";
+            }
+            focus-lost(value) => {
+                if value != "" {
+                    root.ollama-cloud-key-submitted(value);
+                    self.text = "";
+                }
+            }
+        }
+    }
+
+    if !root.ollama-cloud-enabled: SettingsField {
         label: @tr("URL Ollama");
         description: @tr("Adresse du serveur Ollama local ou distant.");
 

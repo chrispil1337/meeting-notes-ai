@@ -6400,6 +6400,85 @@ fn wire_callbacks(
         );
     });
 
+    // Meeting Notes AI: switch between a local Ollama server and Ollama Cloud.
+    let weak = window.as_weak();
+    let handle = tauri_handle.clone();
+    let settings_io_for_ollama_cloud = settings_io.clone();
+    let settings_state_for_ollama_cloud = settings_state.clone();
+    let summary_refresh_state_for_ollama_cloud = summary_refresh_state.clone();
+    let summary_template_editing_for_ollama_cloud = summary_template_editing.clone();
+    let settings_drafts_for_ollama_cloud = settings_drafts.clone();
+    window.on_settings_ollama_cloud_toggled(move |enabled| {
+        let submitted_generation = summary_refresh_state_for_ollama_cloud.invalidate();
+        if let Some(window) = weak.upgrade() {
+            window.set_settings_ollama_cloud_enabled(enabled);
+        }
+        let weak = weak.clone();
+        let handle = handle.clone();
+        let state = settings_state_for_ollama_cloud.clone();
+        let refresh = summary_refresh_state_for_ollama_cloud.clone();
+        let editing = summary_template_editing_for_ollama_cloud.clone();
+        let drafts = settings_drafts_for_ollama_cloud.clone();
+        let io = settings_io_for_ollama_cloud.clone();
+        save_settings_field_then(
+            &settings_io_for_ollama_cloud,
+            souffle_lib::commands::SettingsSaveLane::General,
+            move |settings| settings.set_ollama_cloud_enabled(enabled),
+            move |order, _outcome| {
+                if !summary_refresh_after_settings_response(order)
+                    || !refresh.accepts(submitted_generation)
+                {
+                    return;
+                }
+                // The URL field shows the local server again when leaving
+                // cloud mode (the cloud URL is fixed and not shown).
+                if let Some(window) = weak.upgrade() {
+                    let url = state.borrow().as_ref().map(|s| s.ollama_url.clone());
+                    if let Some(url) = url {
+                        window.set_settings_ollama_url(url.into());
+                    }
+                }
+                refresh_summary_providers(weak, handle, state, refresh, editing, drafts, io);
+            },
+        );
+    });
+
+    // Meeting Notes AI: store the Ollama Cloud API key in the Keychain. The
+    // key is never written to the settings database or shown again.
+    let weak = window.as_weak();
+    let handle = tauri_handle.clone();
+    let settings_state_for_cloud_key = settings_state.clone();
+    let summary_refresh_state_for_cloud_key = summary_refresh_state.clone();
+    let summary_template_editing_for_cloud_key = summary_template_editing.clone();
+    let settings_drafts_for_cloud_key = settings_drafts.clone();
+    let settings_io_for_cloud_key = settings_io.clone();
+    window.on_settings_ollama_cloud_key_submitted(move |value| {
+        let Some(window) = weak.upgrade() else {
+            return;
+        };
+        match souffle_lib::keychain::set_ollama_cloud_api_key(value.as_str()) {
+            Ok(()) => {
+                window.set_settings_ollama_cloud_key_set(
+                    souffle_lib::keychain::has_ollama_cloud_api_key(),
+                );
+                window.set_settings_summary_refresh_error("".into());
+            }
+            Err(error) => {
+                window.set_settings_summary_refresh_error(error.into());
+                return;
+            }
+        }
+        refresh_summary_providers(
+            weak.clone(),
+            handle.clone(),
+            settings_state_for_cloud_key.clone(),
+            summary_refresh_state_for_cloud_key.clone(),
+            summary_template_editing_for_cloud_key.clone(),
+            settings_drafts_for_cloud_key.clone(),
+            settings_io_for_cloud_key.clone(),
+        );
+    });
+
     let weak = window.as_weak();
     let handle = tauri_handle.clone();
     let settings_state_for_retry = settings_state.clone();

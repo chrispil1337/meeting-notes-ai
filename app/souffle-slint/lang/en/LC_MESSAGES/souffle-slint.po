@@ -3304,3 +3304,32 @@ msgstr "Unload the active model or select another model before deleting it."
 msgctxt "InterfaceSection"
 msgid "Une opération est en cours. Réessayez dans un instant."
 msgstr "An operation is in progress. Try again in a moment."
+
+# Meeting Notes AI: Ollama Cloud
+msgctxt "IntelligenceSection"
+msgid "Ollama Cloud"
+msgstr "Ollama Cloud"
+
+msgctxt "IntelligenceSection"
+msgid "Utilise les modèles hébergés par Ollama (ollama.com), par exemple DeepSeek, sans installation locale. Les transcriptions sont alors envoyées à Ollama pour être résumées."
+msgstr "Uses models hosted by Ollama (ollama.com), for example DeepSeek, without a local installation. Transcripts are then sent to Ollama to be summarized."
+
+msgctxt "IntelligenceSection"
+msgid "Clé API Ollama Cloud"
+msgstr "Ollama Cloud API key"
+
+msgctxt "IntelligenceSection"
+msgid "Clé enregistrée dans le trousseau macOS. Saisissez une nouvelle clé pour la remplacer."
+msgstr "Key stored in the macOS Keychain. Enter a new key to replace it."
+
+msgctxt "IntelligenceSection"
+msgid "Créez une clé sur ollama.com/settings/keys, collez-la ici puis appuyez sur Entrée. Elle est enregistrée dans le trousseau macOS."
+msgstr "Create a key at ollama.com/settings/keys, paste it here and press Return. It is stored in the macOS Keychain."
+
+msgctxt "IntelligenceSection"
+msgid "Clé enregistrée"
+msgstr "Key saved"
+
+msgctxt "IntelligenceSection"
+msgid "Coller la clé API"
+msgstr "Paste the API key"

@@ -39,6 +39,16 @@ pub fn is_builtin_summary_template(id: &str) -> bool {
     SUMMARY_TEMPLATE_BUILT_INS.contains(&id)
 }
 
+/// Messages produced in Rust are not covered by the Slint `@tr` catalogue;
+/// pick the French or English text by the interface language instead.
+fn localized(settings: &AppSettings, french: &'static str, english: &'static str) -> &'static str {
+    if settings.locale.trim() == "fr" {
+        french
+    } else {
+        english
+    }
+}
+
 /// Pushes the provider/model picker state from a real
 /// `check_summary_providers()` result. `effective`/`unusable` mirror
 /// `effectiveProvider`/`unusableKey` in the Svelte controller, simplified to
@@ -65,10 +75,44 @@ pub fn populate_intelligence(
         souffle_lib::summary::SummaryProviderChoice::Ollama => false,
         souffle_lib::summary::SummaryProviderChoice::Auto => status.apple_intelligence_available,
     };
+    // Meeting Notes AI: Ollama Cloud state (the key itself never reaches the UI)
+    let cloud = settings.ollama_cloud_enabled;
+    let cloud_key_set = souffle_lib::keychain::has_ollama_cloud_api_key();
+    window.set_settings_ollama_cloud_enabled(cloud);
+    window.set_settings_ollama_cloud_key_set(cloud_key_set);
+
     let unusable = if effective_is_apple && !status.apple_intelligence_available {
-        "Apple Intelligence n'est pas disponible sur cet appareil."
+        localized(
+            settings,
+            "Apple Intelligence n'est pas disponible sur cet appareil.",
+            "Apple Intelligence is not available on this device.",
+        )
     } else if !effective_is_apple && ollama_models.is_empty() {
-        "Aucun modèle Ollama compatible n'est installé."
+        if !cloud {
+            localized(
+                settings,
+                "Aucun modèle Ollama compatible n'est installé.",
+                "No compatible Ollama model is installed.",
+            )
+        } else if !cloud_key_set {
+            localized(
+                settings,
+                "Saisissez votre clé API Ollama Cloud.",
+                "Enter your Ollama Cloud API key.",
+            )
+        } else if !status.ollama_available {
+            localized(
+                settings,
+                "Ollama Cloud est injoignable ou la clé API a été refusée.",
+                "Ollama Cloud is unreachable or the API key was rejected.",
+            )
+        } else {
+            localized(
+                settings,
+                "Aucun modèle compatible trouvé sur Ollama Cloud.",
+                "No compatible model found on Ollama Cloud.",
+            )
+        }
     } else {
         ""
     };
@@ -92,8 +136,9 @@ pub fn populate_intelligence(
     window.set_settings_selected_summary_model_label(
         selected_summary_model_label(&status.models, &settings.ollama_model).into(),
     );
+    // Cloud models are not downloaded, so there is no "download" setup
     window.set_settings_show_ollama_setup(
-        ollama_relevant && status.ollama_available && ollama_models.is_empty(),
+        !cloud && ollama_relevant && status.ollama_available && ollama_models.is_empty(),
     );
     window.set_settings_recommended_ollama_model(status.recommended_ollama_model.as_str().into());
 }

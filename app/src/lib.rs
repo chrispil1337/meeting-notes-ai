@@ -20,6 +20,7 @@ pub mod errors;
 pub mod export;
 pub mod filter;
 pub mod frontmost;
+pub mod keychain;
 pub mod lid;
 pub mod lock_ext;
 pub mod logging;

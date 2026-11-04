@@ -3312,3 +3312,32 @@ msgstr "Déchargez le modèle actif ou choisissez un autre modèle avant de le s
 msgctxt "InterfaceSection"
 msgid "Une opération est en cours. Réessayez dans un instant."
 msgstr "Une opération est en cours. Réessayez dans un instant."
+
+# Meeting Notes AI: Ollama Cloud
+msgctxt "IntelligenceSection"
+msgid "Ollama Cloud"
+msgstr "Ollama Cloud"
+
+msgctxt "IntelligenceSection"
+msgid "Utilise les modèles hébergés par Ollama (ollama.com), par exemple DeepSeek, sans installation locale. Les transcriptions sont alors envoyées à Ollama pour être résumées."
+msgstr "Utilise les modèles hébergés par Ollama (ollama.com), par exemple DeepSeek, sans installation locale. Les transcriptions sont alors envoyées à Ollama pour être résumées."
+
+msgctxt "IntelligenceSection"
+msgid "Clé API Ollama Cloud"
+msgstr "Clé API Ollama Cloud"
+
+msgctxt "IntelligenceSection"
+msgid "Clé enregistrée dans le trousseau macOS. Saisissez une nouvelle clé pour la remplacer."
+msgstr "Clé enregistrée dans le trousseau macOS. Saisissez une nouvelle clé pour la remplacer."
+
+msgctxt "IntelligenceSection"
+msgid "Créez une clé sur ollama.com/settings/keys, collez-la ici puis appuyez sur Entrée. Elle est enregistrée dans le trousseau macOS."
+msgstr "Créez une clé sur ollama.com/settings/keys, collez-la ici puis appuyez sur Entrée. Elle est enregistrée dans le trousseau macOS."
+
+msgctxt "IntelligenceSection"
+msgid "Clé enregistrée"
+msgstr "Clé enregistrée"
+
+msgctxt "IntelligenceSection"
+msgid "Coller la clé API"
+msgstr "Coller la clé API"

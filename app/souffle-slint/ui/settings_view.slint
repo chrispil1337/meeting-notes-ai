@@ -149,6 +149,8 @@ export component SettingsView inherits Rectangle {
     in property <string> ollama-pull-status;
     in property <string> ollama-pull-error;
     in property <string> recommended-ollama-model;
+    in property <bool> ollama-cloud-enabled;
+    in property <bool> ollama-cloud-key-set;
     in property <string> summary-refresh-error;
     in property <string> summary-unusable-message;
     in property <bool> dictation-polish-enabled;
@@ -291,6 +293,8 @@ export component SettingsView inherits Rectangle {
     callback summary-providers-retry-requested();
     callback download-recommended-ollama-model-requested();
     callback open-apple-intelligence-settings-requested();
+    callback ollama-cloud-toggled(bool);
+    callback ollama-cloud-key-submitted(string);
     callback dictation-polish-enabled-changed(bool);
     callback dictation-polish-template-changed(string);
     callback dictation-polish-prompt-changed(string);
@@ -524,6 +528,8 @@ export component SettingsView inherits Rectangle {
                             ollama-pull-status: root.ollama-pull-status;
                             ollama-pull-error: root.ollama-pull-error;
                             recommended-model: root.recommended-ollama-model;
+                            ollama-cloud-enabled: root.ollama-cloud-enabled;
+                            ollama-cloud-key-set: root.ollama-cloud-key-set;
                             refresh-error: root.summary-refresh-error;
                             unusable-message: root.summary-unusable-message;
                             summary-provider-changed(value) => { root.summary-provider-changed(value); }
@@ -532,6 +538,8 @@ export component SettingsView inherits Rectangle {
                             retry-requested => { root.summary-providers-retry-requested(); }
                             download-recommended-requested => { root.download-recommended-ollama-model-requested(); }
                             open-apple-intelligence-settings-requested => { root.open-apple-intelligence-settings-requested(); }
+                            ollama-cloud-toggled(value) => { root.ollama-cloud-toggled(value); }
+                            ollama-cloud-key-submitted(value) => { root.ollama-cloud-key-submitted(value); }
                         }
 
                         DictationPolishSection {

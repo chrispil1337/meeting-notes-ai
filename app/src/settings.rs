@@ -19,6 +19,10 @@ const PASTE_DELAY_MS_KEY: &str = "paste_delay_ms";
 const OLLAMA_URL_KEY: &str = "ollama_url";
 const OLLAMA_MODEL_KEY: &str = "ollama_model";
 const SUMMARY_PROVIDER_KEY: &str = "summary_provider";
+const OLLAMA_CLOUD_ENABLED_KEY: &str = "ollama_cloud_enabled";
+const OLLAMA_LOCAL_URL_KEY: &str = "ollama_local_url";
+const OLLAMA_LOCAL_MODEL_KEY: &str = "ollama_local_model";
+const OLLAMA_CLOUD_MODEL_KEY: &str = "ollama_cloud_model";
 /// Read from `debug` as well, which is why this one is `pub`.
 pub const DEBUG_TRANSCRIPTION_KEY: &str = "debug_transcription";
 const AUDIO_DEVICE_KEY: &str = "audio_device";
@@ -239,6 +243,16 @@ pub struct AppSettings {
     /// applies when this resolves to Ollama.
     pub summary_provider: SummaryProviderChoice,
     pub ollama_model: String,
+    /// Meeting Notes AI: use Ollama Cloud (`https://ollama.com`) instead of a
+    /// local server. While enabled, `ollama_url`/`ollama_model` hold the
+    /// cloud values and the local ones are kept in `ollama_local_*`, so every
+    /// existing code path keeps reading `ollama_url`/`ollama_model`. The API
+    /// key lives in the Keychain (`crate::keychain`), never here.
+    pub ollama_cloud_enabled: bool,
+    pub ollama_local_url: String,
+    pub ollama_local_model: String,
+    /// Last cloud model, restored when switching back to Ollama Cloud.
+    pub ollama_cloud_model: String,
     pub debug_transcription: bool,
     /// Global tracing verbosity for the `souffle` crate.
     pub log_level: LogLevel,
@@ -414,6 +428,10 @@ impl Default for AppSettings {
             ollama_url: OLLAMA_DEFAULT_URL.to_string(),
             summary_provider: SummaryProviderChoice::default(),
             ollama_model: String::new(),
+            ollama_cloud_enabled: false,
+            ollama_local_url: OLLAMA_DEFAULT_URL.to_string(),
+            ollama_local_model: String::new(),
+            ollama_cloud_model: String::new(),
             debug_transcription: false,
             log_level: LogLevel::default(),
             audio_device: None,
@@ -459,6 +477,32 @@ impl Default for AppSettings {
 }
 
 impl AppSettings {
+    /// Switch between a local Ollama server and Ollama Cloud. The values of
+    /// the mode being left are remembered and restored on the way back.
+    /// Choosing Ollama Cloud also selects Ollama as the summary provider, so
+    /// `Auto` does not silently pick Apple Intelligence instead.
+    pub fn set_ollama_cloud_enabled(&mut self, enabled: bool) {
+        if enabled == self.ollama_cloud_enabled {
+            return;
+        }
+        if enabled {
+            self.ollama_local_url = self.ollama_url.clone();
+            self.ollama_local_model = self.ollama_model.clone();
+            self.ollama_url = mna_core::ollama_cloud::OLLAMA_CLOUD_URL.to_string();
+            self.ollama_model = self.ollama_cloud_model.clone();
+            self.summary_provider = SummaryProviderChoice::Ollama;
+        } else {
+            self.ollama_cloud_model = self.ollama_model.clone();
+            self.ollama_url = if self.ollama_local_url.trim().is_empty() {
+                OLLAMA_DEFAULT_URL.to_string()
+            } else {
+                self.ollama_local_url.clone()
+            };
+            self.ollama_model = self.ollama_local_model.clone();
+        }
+        self.ollama_cloud_enabled = enabled;
+    }
+
     pub fn pipeline_config(&self) -> crate::filter::PipelineConfig {
         let vad_model_path = if self.vad_enabled {
             crate::filter::resolve_vad_model_path()
@@ -515,6 +559,20 @@ impl AppSettings {
         }
         if let Some(ollama_model) = read_json_setting::<String>(db, OLLAMA_MODEL_KEY)? {
             settings.ollama_model = ollama_model;
+        }
+        if let Some(enabled) = read_json_setting::<bool>(db, OLLAMA_CLOUD_ENABLED_KEY)? {
+            settings.ollama_cloud_enabled = enabled;
+        }
+        if let Some(url) = read_json_setting::<String>(db, OLLAMA_LOCAL_URL_KEY)?
+            && !url.trim().is_empty()
+        {
+            settings.ollama_local_url = url;
+        }
+        if let Some(model) = read_json_setting::<String>(db, OLLAMA_LOCAL_MODEL_KEY)? {
+            settings.ollama_local_model = model;
+        }
+        if let Some(model) = read_json_setting::<String>(db, OLLAMA_CLOUD_MODEL_KEY)? {
+            settings.ollama_cloud_model = model;
         }
         let stored_provider = read_json_setting::<SummaryProviderChoice>(db, SUMMARY_PROVIDER_KEY)?;
         settings.summary_provider =
@@ -774,6 +832,9 @@ impl AppSettings {
         normalized.locale = normalized.locale.trim().to_string();
         normalized.ollama_url = normalized.ollama_url.trim().to_string();
         normalized.ollama_model = normalized.ollama_model.trim().to_string();
+        normalized.ollama_local_url = normalized.ollama_local_url.trim().to_string();
+        normalized.ollama_local_model = normalized.ollama_local_model.trim().to_string();
+        normalized.ollama_cloud_model = normalized.ollama_cloud_model.trim().to_string();
         normalized.transcription_engine_id = normalized.transcription_engine_id.trim().to_string();
         normalized.transcription_model_id = normalized.transcription_model_id.trim().to_string();
         normalized.transcription_backend_id =
@@ -813,6 +874,14 @@ impl AppSettings {
 
         if normalized.ollama_url.is_empty() {
             normalized.ollama_url = OLLAMA_DEFAULT_URL.to_string();
+        }
+        if normalized.ollama_local_url.is_empty() {
+            normalized.ollama_local_url = OLLAMA_DEFAULT_URL.to_string();
+        }
+        // Cloud mode always talks to the official endpoint, so the API key
+        // (attached only for that host) can not be sent anywhere else.
+        if normalized.ollama_cloud_enabled {
+            normalized.ollama_url = mna_core::ollama_cloud::OLLAMA_CLOUD_URL.to_string();
         }
 
         if normalized.transcription_engine_id.is_empty() {
@@ -1047,6 +1116,26 @@ impl AppSettings {
                 transaction,
                 OLLAMA_MODEL_KEY,
                 &normalized.ollama_model,
+            )?;
+            write_json_setting_in_transaction(
+                transaction,
+                OLLAMA_CLOUD_ENABLED_KEY,
+                &normalized.ollama_cloud_enabled,
+            )?;
+            write_json_setting_in_transaction(
+                transaction,
+                OLLAMA_LOCAL_URL_KEY,
+                &normalized.ollama_local_url,
+            )?;
+            write_json_setting_in_transaction(
+                transaction,
+                OLLAMA_LOCAL_MODEL_KEY,
+                &normalized.ollama_local_model,
+            )?;
+            write_json_setting_in_transaction(
+                transaction,
+                OLLAMA_CLOUD_MODEL_KEY,
+                &normalized.ollama_cloud_model,
             )?;
             write_json_setting_in_transaction(
                 transaction,
@@ -1481,6 +1570,72 @@ fn delete_setting_in_transaction(
         )
         .map_err(|e| format!("Delete setting: {e}"))?;
     Ok(())
+}
+
+#[cfg(test)]
+mod ollama_cloud_settings_tests {
+    use super::*;
+
+    #[test]
+    fn switching_to_cloud_and_back_restores_local_values() {
+        let mut settings = AppSettings {
+            ollama_url: "http://192.168.1.5:11434".into(),
+            ollama_model: "qwen2.5:7b".into(),
+            ..AppSettings::default()
+        };
+
+        settings.set_ollama_cloud_enabled(true);
+        assert!(settings.ollama_cloud_enabled);
+        assert_eq!(settings.ollama_url, "https://ollama.com");
+        assert_eq!(settings.ollama_model, "");
+        assert_eq!(settings.summary_provider, SummaryProviderChoice::Ollama);
+
+        settings.ollama_model = "deepseek-v4.1-flash".into();
+        settings.set_ollama_cloud_enabled(false);
+        assert_eq!(settings.ollama_url, "http://192.168.1.5:11434");
+        assert_eq!(settings.ollama_model, "qwen2.5:7b");
+        assert_eq!(settings.ollama_cloud_model, "deepseek-v4.1-flash");
+
+        settings.set_ollama_cloud_enabled(true);
+        assert_eq!(settings.ollama_model, "deepseek-v4.1-flash");
+    }
+
+    #[test]
+    fn enabling_twice_keeps_the_local_values() {
+        let mut settings = AppSettings {
+            ollama_model: "llama3".into(),
+            ..AppSettings::default()
+        };
+        settings.set_ollama_cloud_enabled(true);
+        settings.set_ollama_cloud_enabled(true);
+        assert_eq!(settings.ollama_local_model, "llama3");
+    }
+
+    #[test]
+    fn cloud_mode_always_uses_the_official_url() {
+        let settings = AppSettings {
+            ollama_cloud_enabled: true,
+            ollama_url: "https://evil.example".into(),
+            ..AppSettings::default()
+        };
+        let saved = settings.sanitize_for_save().unwrap();
+        assert_eq!(saved.ollama_url, "https://ollama.com");
+    }
+
+    #[test]
+    fn cloud_settings_persist() {
+        let (db, _dir) = crate::test_helpers::fixtures::test_db();
+        let mut settings = AppSettings::default();
+        settings.set_ollama_cloud_enabled(true);
+        settings.ollama_model = "deepseek-v4.1-flash".into();
+        settings.save(&db).expect("save");
+
+        let loaded = AppSettings::load(&db).expect("load");
+        assert!(loaded.ollama_cloud_enabled);
+        assert_eq!(loaded.ollama_url, "https://ollama.com");
+        assert_eq!(loaded.ollama_model, "deepseek-v4.1-flash");
+        assert_eq!(loaded.ollama_local_url, OLLAMA_DEFAULT_URL);
+    }
 }
 
 #[cfg(test)]

@@ -52,6 +52,9 @@ workspace = true
 [dependencies]
 souffle-typography = { path = "souffle-typography" }
 souffle-schema = { path = "souffle-schema", features = ["sqlite"] }
+# Meeting Notes AI: platform-neutral logic (Ollama Cloud, transcript cleanup,
+# word diff, audio file decoding), tested on Linux CI.
+mna-core = { path = "mna-core" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
@@ -171,6 +174,8 @@ image = { version = "0.25", default-features = false, features = ["png"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 accessibility-sys = "0.2"
+# Keychain storage of the Ollama Cloud API key (already in the tree via reqwest)
+security-framework = "3"
 
 [features]
 default = ["private-tcc"]

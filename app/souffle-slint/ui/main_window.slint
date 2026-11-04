@@ -316,6 +316,8 @@ export component MainWindow inherits Window {
     in property <bool> settings-ollama-pulling;
     in property <string> settings-ollama-pull-status;
     in property <string> settings-ollama-pull-error;
+    in property <bool> settings-ollama-cloud-enabled;
+    in property <bool> settings-ollama-cloud-key-set;
     in property <string> settings-recommended-ollama-model;
     in property <string> settings-summary-refresh-error;
     in property <string> settings-summary-unusable-message;
@@ -487,6 +489,8 @@ export component MainWindow inherits Window {
     callback settings-summary-provider-changed(SummaryProvider);
     callback settings-ollama-url-changed(string);
     callback settings-ollama-model-changed(string);
+    callback settings-ollama-cloud-toggled(bool);
+    callback settings-ollama-cloud-key-submitted(string);
     callback settings-summary-providers-retry-requested();
     callback settings-download-recommended-ollama-model-requested();
     callback settings-open-apple-intelligence-settings-requested();
@@ -945,6 +949,8 @@ export component MainWindow inherits Window {
         ollama-pull-status: root.settings-ollama-pull-status;
         ollama-pull-error: root.settings-ollama-pull-error;
         recommended-ollama-model: root.settings-recommended-ollama-model;
+        ollama-cloud-enabled: root.settings-ollama-cloud-enabled;
+        ollama-cloud-key-set: root.settings-ollama-cloud-key-set;
         summary-refresh-error: root.settings-summary-refresh-error;
         summary-unusable-message: root.settings-summary-unusable-message;
         dictation-polish-enabled: root.settings-dictation-polish-enabled;
@@ -1087,6 +1093,8 @@ export component MainWindow inherits Window {
         summary-provider-changed(value) => { root.settings-summary-provider-changed(value); }
         ollama-url-changed(value) => { root.settings-ollama-url-changed(value); }
         ollama-model-changed(value) => { root.settings-ollama-model-changed(value); }
+        ollama-cloud-toggled(value) => { root.settings-ollama-cloud-toggled(value); }
+        ollama-cloud-key-submitted(value) => { root.settings-ollama-cloud-key-submitted(value); }
         summary-providers-retry-requested => { root.settings-summary-providers-retry-requested(); }
         download-recommended-ollama-model-requested => { root.settings-download-recommended-ollama-model-requested(); }
         open-apple-intelligence-settings-requested => { root.settings-open-apple-intelligence-settings-requested(); }
