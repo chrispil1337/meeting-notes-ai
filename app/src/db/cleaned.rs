@@ -4,7 +4,8 @@
 //! snapshot of the original text it was made from, so the comparison stays
 //! correct even if the original changes later; `source_segment_count` tells
 //! the UI when the meeting got new segments after the cleanup (resumed
-//! recording) and the cleanup should be run again.
+//! recording) and the cleanup should be run again. `Database::delete_meeting`
+//! removes the row (no FK cascade, see `schema::CREATE_CLEANED_TRANSCRIPTS`).
 
 use chrono::{DateTime, Utc};
 use rusqlite::{OptionalExtension, params};
@@ -228,6 +229,11 @@ mod tests {
 
         let reloaded = db.load_meeting("m2").unwrap();
         assert_eq!(reloaded.segments[0].text, meeting.segments[0].text);
+
+        // Saving the meeting again (e.g. after a resumed recording) rewrites
+        // its row with INSERT OR REPLACE; the cleaned transcript must survive.
+        db.save_meeting(&reloaded).unwrap();
+        assert!(db.load_cleaned_transcript("m2").unwrap().is_some());
 
         db.delete_meeting("m2").unwrap();
         assert!(db.load_cleaned_transcript("m2").unwrap().is_none());

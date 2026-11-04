@@ -616,6 +616,14 @@ impl Database {
         )
         .map_err(|e| format!("Delete FTS: {e}"))?;
 
+        // Meeting Notes AI: no FK cascade on purpose (see
+        // `schema::CREATE_CLEANED_TRANSCRIPTS`).
+        conn.execute(
+            "DELETE FROM cleaned_transcripts WHERE meeting_id = ?1",
+            params![id],
+        )
+        .map_err(|e| format!("Delete cleaned transcript: {e}"))?;
+
         conn.execute(
             &format!("DELETE FROM {MEETINGS} WHERE {ID} = ?1"),
             params![id],

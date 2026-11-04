@@ -47,9 +47,14 @@ pub const CREATE_MEETINGS_V1: &str = "
 /// Meeting Notes AI (v18): the AI-cleaned transcript of a meeting, kept next
 /// to the untouched original. One row per meeting; `segments` is a JSON
 /// array of `CleanedSegmentRecord` with a snapshot of each original text.
+///
+/// Deliberately no `ON DELETE CASCADE`: `save_meeting` writes the meeting
+/// row with `INSERT OR REPLACE`, which deletes and re-inserts it, and a
+/// cascade would then drop the cleaned transcript (with manual edits) every
+/// time a resumed recording is saved. `delete_meeting` removes it instead.
 pub const CREATE_CLEANED_TRANSCRIPTS: &str = "
     CREATE TABLE IF NOT EXISTS cleaned_transcripts (
-        meeting_id TEXT PRIMARY KEY REFERENCES meetings(id) ON DELETE CASCADE,
+        meeting_id TEXT PRIMARY KEY,
         model TEXT NOT NULL,
         generated_at TEXT NOT NULL,
         source_segment_count INTEGER NOT NULL,
