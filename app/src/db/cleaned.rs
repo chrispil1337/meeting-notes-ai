@@ -63,6 +63,20 @@ impl CleanedTranscript {
     }
 }
 
+/// Delete a meeting's cleaned transcript on an already locked connection
+/// (used by `Database::delete_meeting`).
+pub(super) fn delete_cleaned_with(
+    conn: &rusqlite::Connection,
+    meeting_id: &str,
+) -> Result<(), String> {
+    conn.execute(
+        "DELETE FROM cleaned_transcripts WHERE meeting_id = ?1",
+        params![meeting_id],
+    )
+    .map_err(|e| format!("Delete cleaned transcript: {e}"))?;
+    Ok(())
+}
+
 impl Database {
     /// Insert or replace the cleaned transcript of a meeting.
     pub fn save_cleaned_transcript(&self, cleaned: &CleanedTranscript) -> Result<(), String> {
@@ -148,12 +162,7 @@ impl Database {
 
     pub fn delete_cleaned_transcript(&self, meeting_id: &str) -> Result<(), String> {
         let conn = self.conn.acquire()?;
-        conn.execute(
-            "DELETE FROM cleaned_transcripts WHERE meeting_id = ?1",
-            params![meeting_id],
-        )
-        .map_err(|e| format!("Delete cleaned transcript: {e}"))?;
-        Ok(())
+        delete_cleaned_with(&conn, meeting_id)
     }
 }
 
