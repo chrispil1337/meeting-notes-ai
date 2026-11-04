@@ -505,7 +505,8 @@ fn is_own_app_name(name: &str) -> bool {
             other => other,
         })
         .collect();
-    folded.eq_ignore_ascii_case("souffle")
+    // Meeting Notes AI: the fork's own name counts too.
+    folded.eq_ignore_ascii_case("souffle") || folded.eq_ignore_ascii_case("meeting notes ai")
 }
 
 const PROMPT_LEAK_MARKERS: &[&str] = &[

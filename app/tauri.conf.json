@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicegui-org/nicegui/main/tauri.conf.json",
-  "productName": "Soufflé",
+  "productName": "Meeting Notes AI",
   "mainBinaryName": "souffle",
-  "identifier": "com.souffle.desktop",
+  "identifier": "com.meetingnotesai.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Soufflé",
+        "title": "Meeting Notes AI",
         "width": 1040,
         "height": 1280,
         "minWidth": 680,
@@ -76,7 +76,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDRCNEIzOEFGNTQwMUM1RkIKUldUN3hRRlVyemhMUzBqLzZuSWpCY2RtYnM0djNQUHZvdkFGNWxNVFA1d1hUZllDUjFJK3NPZzMK",
       "endpoints": [
-        "https://github.com/damione1/souffle/releases/latest/download/latest.json"
+        "https://github.com/chrispil1337/meeting-notes-ai/releases/latest/download/latest.json"
       ]
     }
   }

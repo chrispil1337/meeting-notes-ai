@@ -1378,7 +1378,7 @@ mod tests {
             |_| false,
         );
         assert_eq!(seen.as_deref(), Some(APP_IDENTIFIER));
-        assert_eq!(APP_IDENTIFIER, "com.souffle.desktop");
+        assert_eq!(APP_IDENTIFIER, "com.meetingnotesai.desktop");
     }
 
     #[test]

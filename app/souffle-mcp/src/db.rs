@@ -132,7 +132,7 @@ fn resolve_db_path_from(
 }
 
 /// Sidecar lives at `Foo.app/Contents/MacOS/souffle-mcp`. Nightly builds
-/// use `com.souffle.desktop.nightly`; fall back to the shipped id.
+/// use `com.meetingnotesai.desktop.nightly`; fall back to the shipped id.
 fn bundle_identifier_from_info_plist(exe: &Path) -> Option<String> {
     let macos = exe.parent()?;
     if macos.file_name()?.to_str()? != "MacOS" {
@@ -147,7 +147,8 @@ fn bundle_id_from_info_plist_xml(plist: &str) -> Option<String> {
     let after = plist.split_once(key)?.1.trim_start();
     let after = after.strip_prefix("<string>")?;
     let id = after.split_once("</string>")?.0.trim();
-    id.starts_with("com.souffle.").then(|| id.to_string())
+    id.starts_with(souffle_schema::APP_IDENTIFIER_PREFIX)
+        .then(|| id.to_string())
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, JsonSchema)]
@@ -692,7 +693,7 @@ mod tests {
     #[test]
     fn resolves_the_database_inside_a_nightly_bundle() {
         let dir = TempDir::new().unwrap();
-        let contents = dir.path().join("Soufflé Nightly.app/Contents");
+        let contents = dir.path().join("Meeting Notes AI Nightly.app/Contents");
         let exe = contents.join("MacOS/souffle-mcp");
         std::fs::create_dir_all(exe.parent().unwrap()).unwrap();
         std::fs::write(
@@ -738,7 +739,7 @@ mod tests {
         let xml = format!(
             r#"
             <key>CFBundleName</key>
-            <string>Soufflé Nightly</string>
+            <string>Meeting Notes AI Nightly</string>
             <key>CFBundleIdentifier</key>
             <string>{NIGHTLY_APP_IDENTIFIER}</string>
         "#

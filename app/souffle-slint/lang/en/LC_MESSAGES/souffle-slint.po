@@ -404,7 +404,7 @@ msgstr "Keyboard shortcut"
 #: app/souffle-slint/ui/onboarding_view.slint:80
 msgctxt "OnboardingView"
 msgid "Soufflé a besoin de ces autorisations macOS pour fonctionner."
-msgstr "Soufflé needs these macOS permissions to work."
+msgstr "Meeting Notes AI needs these macOS permissions to work."
 
 #: app/souffle-slint/ui/onboarding_view.slint:81
 msgctxt "OnboardingView"
@@ -441,7 +441,7 @@ msgstr "Continue"
 #: app/souffle-slint/ui/onboarding_view.slint:119
 msgctxt "OnboardingView"
 msgid "Soufflé"
-msgstr "Soufflé"
+msgstr "Meeting Notes AI"
 
 #: app/souffle-slint/ui/onboarding_view.slint:127
 msgctxt "OnboardingView"
@@ -530,7 +530,7 @@ msgstr "You can grant these later when prompted."
 #: app/souffle-slint/ui/main_window.slint:42
 msgctxt "MainWindow"
 msgid "Soufflé"
-msgstr "Soufflé"
+msgstr "Meeting Notes AI"
 
 #: app/souffle-slint/ui/idle_view.slint:44
 msgctxt "IdleView"
@@ -853,7 +853,7 @@ msgstr "Model error"
 #: app/souffle-slint/ui/components/app_header.slint:89
 msgctxt "AppHeader"
 msgid "Soufflé"
-msgstr "Soufflé"
+msgstr "Meeting Notes AI"
 
 #: app/souffle-slint/ui/components/app_header.slint:154
 msgctxt "AppHeader"
@@ -1664,12 +1664,12 @@ msgstr "Launch at login"
 #: app/souffle-slint/ui/components/settings/autostart_section.slint:20
 msgctxt "AutostartSection"
 msgid "Ouvrir Soufflé automatiquement au démarrage du Mac."
-msgstr "Open Soufflé automatically at Mac startup."
+msgstr "Open Meeting Notes AI automatically at Mac startup."
 
 #: app/souffle-slint/ui/components/settings/autostart_section.slint:23
 msgctxt "AutostartSection"
 msgid "Lancer Soufflé à l'ouverture de session"
-msgstr "Launch Soufflé at login"
+msgstr "Launch Meeting Notes AI at login"
 
 #: app/souffle-slint/ui/components/settings/microphone_section.slint:88
 msgctxt "MicrophoneSection"
@@ -1707,7 +1707,7 @@ msgid ""
 "Choisissez le microphone que Soufflé écoute et configurez le traitement "
 "audio."
 msgstr ""
-"Choose the microphone Soufflé listens to and configure audio processing."
+"Choose the microphone Meeting Notes AI listens to and configure audio processing."
 
 #: app/souffle-slint/ui/components/settings/microphone_section.slint:130
 msgctxt "MicrophoneSection"
@@ -2100,7 +2100,7 @@ msgstr "Log level"
 #: app/souffle-slint/ui/components/settings/diagnostics_section.slint:54
 msgctxt "DiagnosticsSection"
 msgid "Quantité de détails que Soufflé écrit dans le fichier journal."
-msgstr "Amount of detail Soufflé writes to the log file."
+msgstr "Amount of detail Meeting Notes AI writes to the log file."
 
 #: app/souffle-slint/ui/components/settings/diagnostics_section.slint:77
 msgctxt "DiagnosticsSection"
@@ -2164,7 +2164,7 @@ msgstr "This Mac does not support Apple Intelligence."
 msgctxt "IntelligenceSection"
 msgid ""
 "Activez Apple Intelligence dans les Réglages Système, puis rouvrez Soufflé."
-msgstr "Enable Apple Intelligence in System Settings, then reopen Soufflé."
+msgstr "Enable Apple Intelligence in System Settings, then reopen Meeting Notes AI."
 
 #: app/souffle-slint/ui/components/settings/intelligence_section.slint:54
 msgctxt "IntelligenceSection"
@@ -3013,19 +3013,19 @@ msgstr "While the overlay is shown, exclude it from screenshots, screen recordin
 
 msgctxt "MicStallBanner"
 msgid "Le micro « {} » ne répond toujours pas : sa dernière ouverture est encore bloquée dans macOS. Choisissez un autre micro, ou redémarrez Soufflé pour le réutiliser."
-msgstr "The microphone “{}” is still not responding: its last open is still stuck in macOS. Pick another microphone, or restart Soufflé to use it again."
+msgstr "The microphone “{}” is still not responding: its last open is still stuck in macOS. Pick another microphone, or restart Meeting Notes AI to use it again."
 
 msgctxt "MicStallBanner"
 msgid "Le micro « {} » ne répond pas ; Soufflé réessaiera bientôt. Choisissez un autre micro, ou redémarrez Soufflé."
-msgstr "The microphone “{}” is not responding; Soufflé will try again shortly. Pick another microphone, or restart Soufflé."
+msgstr "The microphone “{}” is not responding; Meeting Notes AI will try again shortly. Pick another microphone, or restart Meeting Notes AI."
 
 msgctxt "MicStallBanner"
 msgid "Le micro « {} » n’a pas répondu à temps. Choisissez un autre micro, ou redémarrez Soufflé s’il reste bloqué."
-msgstr "The microphone “{}” did not respond in time. Pick another microphone, or restart Soufflé if it stays stuck."
+msgstr "The microphone “{}” did not respond in time. Pick another microphone, or restart Meeting Notes AI if it stays stuck."
 
 msgctxt "MicStallBanner"
 msgid "Redémarrer Soufflé"
-msgstr "Restart Soufflé"
+msgstr "Restart Meeting Notes AI"
 
 #: app/souffle-slint/ui/idle_view.slint
 msgctxt "IdleView"
@@ -3086,7 +3086,7 @@ msgstr "Looking for a new version…"
 #: app/souffle-slint/ui/components/settings/about_section.slint
 msgctxt "AboutSection"
 msgid "Soufflé est à jour."
-msgstr "Soufflé is up to date."
+msgstr "Meeting Notes AI is up to date."
 
 #: app/souffle-slint/ui/components/settings/about_section.slint
 msgctxt "AboutSection"
@@ -3116,7 +3116,7 @@ msgstr "Version {} is ready to install."
 #: app/souffle-slint/ui/components/settings/about_section.slint
 msgctxt "AboutSection"
 msgid "Installation de la version {}. Soufflé va redémarrer."
-msgstr "Installing version {}. Soufflé will restart."
+msgstr "Installing version {}. Meeting Notes AI will restart."
 
 #: app/souffle-slint/ui/components/settings/about_section.slint
 msgctxt "AboutSection"
@@ -3155,7 +3155,7 @@ msgstr "Try again"
 
 msgctxt "ModelDeleteSection"
 msgid "Les assets Apple Speech sont gérés par macOS. Soufflé ne les supprime pas."
-msgstr "Apple Speech assets are managed by macOS. Soufflé does not delete them."
+msgstr "Apple Speech assets are managed by macOS. Meeting Notes AI does not delete them."
 
 msgctxt "TranscriptionLabels"
 msgid "Apple Speech — {} [{}]"
@@ -3171,7 +3171,7 @@ msgstr "Apple Speech ({})"
 
 msgctxt "ModelSection"
 msgid "La langue affichée est celle prise en charge par Apple Speech pour la langue et la région de ce Mac. Pour la modifier, ouvrez Réglages Système > Général > Langue et région, puis relancez Soufflé."
-msgstr "The language shown is the one Apple Speech supports for this Mac’s language and region. To change it, open System Settings > General > Language & Region, then reopen Soufflé."
+msgstr "The language shown is the one Apple Speech supports for this Mac’s language and region. To change it, open System Settings > General > Language & Region, then reopen Meeting Notes AI."
 
 msgctxt "ModelSection"
 msgid "La transcription fonctionne sans activer Siri ou Apple Intelligence. macOS gère le modèle."
@@ -3195,19 +3195,19 @@ msgstr "Apple Speech is not supported on this Mac. Choose another transcription 
 
 msgctxt "ModelSection"
 msgid "Cette version de Soufflé n'inclut pas Apple Speech. Installez une version compatible ou choisissez un autre modèle."
-msgstr "This version of Soufflé does not include Apple Speech. Install a compatible version or choose another model."
+msgstr "This version of Meeting Notes AI does not include Apple Speech. Install a compatible version or choose another model."
 
 msgctxt "ModelSection"
 msgid "La langue et la région actuelles de ce Mac ne sont pas prises en charge par Apple Speech. Modifiez-les dans Réglages Système > Général > Langue et région, puis relancez Soufflé, ou choisissez un autre modèle."
-msgstr "Apple Speech does not support this Mac’s current language and region. Change them in System Settings > General > Language & Region, then reopen Soufflé, or choose another model."
+msgstr "Apple Speech does not support this Mac’s current language and region. Change them in System Settings > General > Language & Region, then reopen Meeting Notes AI, or choose another model."
 
 msgctxt "ModelSection"
 msgid "Les ressources Apple Speech ne sont pas disponibles pour la langue de ce Mac. Choisissez une autre langue dans Langue et région, puis relancez Soufflé, ou utilisez un autre modèle."
-msgstr "Apple Speech resources are not available for this Mac’s language. Choose another language in Language & Region, then reopen Soufflé, or use another model."
+msgstr "Apple Speech resources are not available for this Mac’s language. Choose another language in Language & Region, then reopen Meeting Notes AI, or use another model."
 
 msgctxt "ModelSection"
 msgid "Impossible de vérifier la disponibilité d'Apple Speech. Relancez Soufflé pour réessayer ou choisissez un autre modèle."
-msgstr "Apple Speech availability could not be checked. Reopen Soufflé to try again or choose another model."
+msgstr "Apple Speech availability could not be checked. Reopen Meeting Notes AI to try again or choose another model."
 
 msgctxt "ModelSection"
 msgid "Ouvrir Mise à jour de logiciels"
@@ -3291,7 +3291,7 @@ msgstr "Finish the recording before changing models."
 
 msgctxt "ModelDeleteSection"
 msgid "Les ressources Apple Speech sont gérées par macOS et ne peuvent pas être supprimées par Soufflé."
-msgstr "Apple Speech assets are managed by macOS and cannot be deleted by Soufflé."
+msgstr "Apple Speech assets are managed by macOS and cannot be deleted by Meeting Notes AI."
 
 msgctxt "ModelDeleteSection"
 msgid "Attendez la fin de l'opération sur le modèle avant de le supprimer."

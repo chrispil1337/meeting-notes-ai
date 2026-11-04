@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Debug and `tauri dev` builds are Soufflé Nightly (com.souffle.desktop.nightly)
+# Debug and `tauri dev` builds are Meeting Notes AI Nightly (com.meetingnotesai.desktop.nightly)
 # so they coexist with the installed app: separate TCC rows, Dock name, and
-# Application Support folder. Release builds keep com.souffle.desktop.
+# Application Support folder. Release builds keep com.meetingnotesai.desktop.
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"

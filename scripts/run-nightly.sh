@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Build Soufflé Nightly (debug identity) and open it. Does not touch the
-# installed Soufflé.app.
+# Build Meeting Notes AI Nightly (debug identity) and open it. Does not touch the
+# installed Meeting Notes AI.app.
 #   --dmg    wrap the .app in a disk image
-#   --fresh  wipe Nightly data + TCC rows, and remove the old debug Soufflé.app
+#   --fresh  wipe Nightly data + TCC rows, and remove the old debug Meeting Notes AI.app
 #            bundle that collides in System Settings
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 
-app="$root/app/target/debug/bundle/macos/Soufflé Nightly.app"
-old_debug="$root/app/target/debug/bundle/macos/Soufflé.app"
-dmg="$root/app/target/debug/bundle/dmg/Soufflé Nightly.dmg"
-nightly_id="com.souffle.desktop.nightly"
+app="$root/app/target/debug/bundle/macos/Meeting Notes AI Nightly.app"
+old_debug="$root/app/target/debug/bundle/macos/Meeting Notes AI.app"
+dmg="$root/app/target/debug/bundle/dmg/Meeting Notes AI Nightly.dmg"
+nightly_id="com.meetingnotesai.desktop.nightly"
 
 fresh=0
 dmg_mode=0
@@ -27,7 +27,7 @@ done
 # decomposed "é" (e + U+0301) in its path, so a pattern typed with the
 # precomposed "é" never matches and the old Nightly survives - `open` then just
 # brings the stale build forward. "Nightly.app/" never matches
-# /Applications/Soufflé.app.
+# /Applications/Meeting Notes AI.app.
 nightly_proc="Nightly.app/Contents/MacOS/souffle"
 
 # Stop every running Nightly and wait until it has exited, so `open` launches
@@ -44,13 +44,13 @@ stop_nightly() {
     pgrep -f "$nightly_proc" >/dev/null || return 0
     sleep 0.1
   done
-  echo "error: Soufflé Nightly is still running after SIGKILL" >&2
+  echo "error: Meeting Notes AI Nightly is still running after SIGKILL" >&2
   return 1
 }
 
-# Always stop Nightly before a rebuild. Never touch /Applications/Soufflé.
+# Always stop Nightly before a rebuild. Never touch /Applications/Meeting Notes AI.
 stop_nightly
-# Same-name debug bundle from earlier builds: TCC shows "Soufflé" and
+# Same-name debug bundle from earlier builds: TCC shows "Meeting Notes AI" and
 # Launch Services can pick it over Nightly.
 if [[ -d "$old_debug" ]]; then
   echo "Removing stale debug bundle: $old_debug"
@@ -93,4 +93,4 @@ else
   open "$app"
 fi
 
-echo "Soufflé Nightly: $app"
+echo "Meeting Notes AI Nightly: $app"

@@ -15,8 +15,11 @@ pub mod paragraphs;
 pub mod sql;
 
 /// On-disk identities shared by the app and its independently bundled sidecar.
-pub const APP_IDENTIFIER: &str = "com.souffle.desktop";
-pub const NIGHTLY_APP_IDENTIFIER: &str = "com.souffle.desktop.nightly";
+pub const APP_IDENTIFIER: &str = "com.meetingnotesai.desktop";
+pub const NIGHTLY_APP_IDENTIFIER: &str = "com.meetingnotesai.desktop.nightly";
+/// Meeting Notes AI: every bundle id of this app (shipped and nightly)
+/// starts with this; the app and the MCP sidecar only trust ids with it.
+pub const APP_IDENTIFIER_PREFIX: &str = "com.meetingnotesai.";
 pub const DB_FILENAME: &str = "souffle.db";
 
 /// Schema version 17 adds the local dictionary suggestion queue. Version 18

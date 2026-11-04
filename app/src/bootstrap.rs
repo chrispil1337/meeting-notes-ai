@@ -233,6 +233,6 @@ pub fn bootstrap() -> Arc<AppState> {
         warn!("Failed to spawn ONNX Runtime warm-up thread: {e}");
     }
 
-    info!("Soufflé started");
+    info!("Meeting Notes AI started");
     state
 }

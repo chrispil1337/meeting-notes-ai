@@ -322,9 +322,11 @@ fn notify(
         CalendarMeetingNudgeKind::Reminder => {
             let minutes = starts_in_seconds.div_ceil(60).max(1);
             if locale.starts_with("fr") {
-                format!("Commence dans {minutes} min. Ouvrez Soufflé pour transcrire la réunion.")
+                format!(
+                    "Commence dans {minutes} min. Ouvrez Meeting Notes AI pour transcrire la réunion."
+                )
             } else {
-                format!("Starts in {minutes} min. Open Soufflé to transcribe the meeting.")
+                format!("Starts in {minutes} min. Open Meeting Notes AI to transcribe the meeting.")
             }
         }
         CalendarMeetingNudgeKind::Autostart => {

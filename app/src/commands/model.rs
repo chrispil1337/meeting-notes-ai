@@ -309,7 +309,7 @@ pub enum ModelDeletionError {
 impl std::fmt::Display for ModelDeletionError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::ManagedAsset => formatter.write_str("Apple Speech assets are managed by macOS and cannot be deleted by Soufflé."),
+            Self::ManagedAsset => formatter.write_str("Apple Speech assets are managed by macOS and cannot be deleted by Meeting Notes AI."),
             Self::TransitionBusy => formatter.write_str("Cannot delete a model while it is downloading, loading, unloading, or recovering from a failed unload."),
             Self::ActiveModel => formatter.write_str("Cannot delete the currently loaded model. Unload it first or switch to a different model."),
             Self::OperationFailed { message } => formatter.write_str(message),

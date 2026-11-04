@@ -23,7 +23,7 @@
 #   scripts/bundle-macos.sh [--debug] [--nightly] [--native-aec] [--dmg] [--notarize] [--sign-updater]
 #
 #   --debug          debug cargo profile (default: release)
-#   --nightly        "Soufflé Nightly" / com.souffle.desktop.nightly, coexists
+#   --nightly        "Meeting Notes AI Nightly" / com.meetingnotesai.desktop.nightly, coexists
 #                     with the installed app (mirrors tauri.nightly.conf.json)
 #   --native-aec     experimental Apple meeting microphone; requires --nightly.
 #                     Dictation stays CPAL. Bundle goes under macos-native-aec.
@@ -84,23 +84,25 @@ fi
 app_version="$(sed -n 's/^version = "\(.*\)"/\1/p' app/Cargo.toml | head -1)"
 
 if [[ "$nightly" -eq 1 ]]; then
-  app_name="Soufflé Nightly"
-  update_asset_name="Souffle-Nightly.app.tar.gz"
-  bundle_id="com.souffle.desktop.nightly"
+  app_name="Meeting Notes AI Nightly"
+  update_asset_name="Meeting-Notes-AI-Nightly.app.tar.gz"
+  bundle_id="com.meetingnotesai.desktop.nightly"
   entitlements="app/entitlements.nightly.plist"
   [[ -f "$entitlements" ]] || entitlements="app/entitlements.plist"
 else
-  app_name="Soufflé"
-  # GitHub rewrites non-ASCII release asset names on upload (`Soufflé.app.tar.gz`
-  # is stored as `Souffle.app.tar.gz`), so the update archive gets an ASCII
-  # name up front: latest.json must point at the name GitHub actually serves.
-  update_asset_name="Souffle.app.tar.gz"
-  bundle_id="com.souffle.desktop"
+  app_name="Meeting Notes AI"
+  # GitHub rewrites spaces and non-ASCII characters in release asset names on
+  # upload, so the update archive gets a plain name up front: latest.json
+  # must point at the name GitHub actually serves.
+  update_asset_name="Meeting-Notes-AI.app.tar.gz"
+  bundle_id="com.meetingnotesai.desktop"
   entitlements="app/entitlements.plist"
 fi
 
-export APPLE_SIGNING_IDENTITY="${APPLE_SIGNING_IDENTITY:-Developer ID Application: Damien Goehrig (X6H966RSDB)}"
-if ! security find-identity -v -p codesigning 2>/dev/null | grep -qF "$APPLE_SIGNING_IDENTITY"; then
+# Meeting Notes AI: no default identity (upstream defaulted to the Soufflé
+# author's certificate). Set APPLE_SIGNING_IDENTITY to sign with your own.
+export APPLE_SIGNING_IDENTITY="${APPLE_SIGNING_IDENTITY:-}"
+if [[ -z "$APPLE_SIGNING_IDENTITY" ]] || ! security find-identity -v -p codesigning 2>/dev/null | grep -qF "$APPLE_SIGNING_IDENTITY"; then
   echo "WARNING: no codesigning identity matching '$APPLE_SIGNING_IDENTITY' in the keychain." >&2
   echo "         Building unsigned: TCC will treat every rebuild as a new subject, and" >&2
   echo "         notarization (if requested) will fail outright." >&2
@@ -339,7 +341,7 @@ if [[ "$sign_updater" -eq 1 ]]; then
   "platforms": {
     "darwin-aarch64": {
       "signature": "${sig_b64}",
-      "url": "https://github.com/damione1/souffle/releases/download/v${app_version}/$(basename "$tar_path")"
+      "url": "https://github.com/chrispil1337/meeting-notes-ai/releases/download/v${app_version}/$(basename "$tar_path")"
     }
   }
 }

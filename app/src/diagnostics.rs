@@ -145,7 +145,7 @@ pub fn strip_transcript_lines(tail: &str) -> (String, usize) {
 
 pub fn format_bundle_text(bundle: &DiagnosticsBundle, log_tail: &str) -> String {
     let mut out = String::new();
-    out.push_str("Soufflé diagnostics\n");
+    out.push_str("Meeting Notes AI diagnostics\n");
     out.push_str("===================\n");
     out.push_str(&format!("App version: {}\n", bundle.app_version));
     out.push_str(&format!("Machine state: {}\n", bundle.machine_state));

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-const GITHUB_REPO: &str = "damione1/souffle";
+const GITHUB_REPO: &str = "chrispil1337/meeting-notes-ai";
 const CHECK_TIMEOUT_SECS: u64 = 10;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

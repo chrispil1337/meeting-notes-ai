@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Wipe Soufflé local state and start the dev app (first-run wizard).
+# Wipe Meeting Notes AI local state and start the dev app (first-run wizard).
 set -euo pipefail
 
-DATA_DIR="${HOME}/Library/Application Support/com.souffle.desktop.nightly"
-WEBKIT_DIR="${HOME}/Library/WebKit/com.souffle.desktop.nightly"
+DATA_DIR="${HOME}/Library/Application Support/com.meetingnotesai.desktop.nightly"
+WEBKIT_DIR="${HOME}/Library/WebKit/com.meetingnotesai.desktop.nightly"
 
 echo "Removing app data:"
 for dir in "$DATA_DIR" "$WEBKIT_DIR"; do

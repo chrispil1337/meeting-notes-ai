@@ -19,15 +19,22 @@ pub const MIMI_FRAME_SIZE: usize = 1920;
 /// Mimi codec frame rate (24000 / 1920)
 pub const MIMI_FRAMES_PER_SECOND: f64 = 12.5;
 
-pub use souffle_schema::{APP_IDENTIFIER, DB_FILENAME, NIGHTLY_APP_IDENTIFIER};
+pub use souffle_schema::{
+    APP_IDENTIFIER, APP_IDENTIFIER_PREFIX, DB_FILENAME, NIGHTLY_APP_IDENTIFIER,
+};
 
 /// Former bundle identifier; the data directory is renamed from this to
 /// [`APP_IDENTIFIER`] at startup so existing meetings/settings/models survive
 /// the change. (The old `.app` suffix conflicted with the macOS bundle
 /// extension.)
-pub const LEGACY_APP_IDENTIFIER: &str = "com.souffle.app";
+///
+/// Meeting Notes AI: upstream Soufflé used `com.souffle.app`. This fork has
+/// its own identity and must never move Soufflé's data into its own folder,
+/// so the legacy id is one this fork never shipped (the migration is a
+/// no-op, kept only so upstream changes still merge cleanly).
+pub const LEGACY_APP_IDENTIFIER: &str = "com.meetingnotesai.app";
 
-/// Bundle id of *this* process. Nightly builds are `com.souffle.desktop.nightly`;
+/// Bundle id of *this* process. Nightly builds are `com.meetingnotesai.desktop.nightly`;
 /// cargo test and a bare binary fall back to [`APP_IDENTIFIER`].
 ///
 /// `SOUFFLE_APP_IDENTIFIER` overrides both: a bare dev binary (no app bundle,
@@ -41,7 +48,7 @@ pub fn running_app_identifier() -> String {
     }
     #[cfg(target_os = "macos")]
     if let Some(id) = macos_bundle_identifier()
-        && id.starts_with("com.souffle.")
+        && id.starts_with(APP_IDENTIFIER_PREFIX)
     {
         return id;
     }
@@ -55,7 +62,7 @@ fn macos_bundle_identifier() -> Option<String> {
     Some(id.to_string())
 }
 
-/// Get the application data directory (e.g. ~/Library/Application Support/com.souffle.desktop)
+/// Get the application data directory (e.g. ~/Library/Application Support/com.meetingnotesai.desktop)
 pub fn app_data_dir() -> std::path::PathBuf {
     dirs_next::data_dir()
         .unwrap_or_else(|| std::path::PathBuf::from("."))
@@ -271,7 +278,9 @@ mod identity_tests {
     #[test]
     fn nightly_id_is_not_the_shipped_id() {
         assert_ne!(NIGHTLY_APP_IDENTIFIER, APP_IDENTIFIER);
-        assert_eq!(NIGHTLY_APP_IDENTIFIER, "com.souffle.desktop.nightly");
+        assert_eq!(NIGHTLY_APP_IDENTIFIER, "com.meetingnotesai.desktop.nightly");
+        assert!(APP_IDENTIFIER.starts_with(APP_IDENTIFIER_PREFIX));
+        assert!(NIGHTLY_APP_IDENTIFIER.starts_with(APP_IDENTIFIER_PREFIX));
     }
 
     #[test]

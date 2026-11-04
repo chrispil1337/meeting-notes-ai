@@ -1,6 +1,6 @@
 {
-  "productName": "Soufflé Nightly",
-  "identifier": "com.souffle.desktop.nightly",
+  "productName": "Meeting Notes AI Nightly",
+  "identifier": "com.meetingnotesai.desktop.nightly",
   "bundle": {
     "createUpdaterArtifacts": false,
     "macOS": {

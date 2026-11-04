@@ -278,7 +278,7 @@ pub fn setup_tray(state: &Arc<AppState>) -> Result<(), Box<dyn std::error::Error
 
     let tray = TrayIconBuilder::new()
         .with_menu(Box::new(menu))
-        .with_tooltip("Soufflé")
+        .with_tooltip("Meeting Notes AI")
         .with_icon(idle_icon())
         .with_icon_as_template(true)
         .build()?;

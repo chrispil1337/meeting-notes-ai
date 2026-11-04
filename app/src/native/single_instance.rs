@@ -86,6 +86,6 @@ fn notify_existing_instance() {
         Ok(mut stream) => {
             let _ = stream.write_all(b"show");
         }
-        Err(e) => warn!("Could not reach the running Soufflé instance: {e}"),
+        Err(e) => warn!("Could not reach the running Meeting Notes AI instance: {e}"),
     }
 }
