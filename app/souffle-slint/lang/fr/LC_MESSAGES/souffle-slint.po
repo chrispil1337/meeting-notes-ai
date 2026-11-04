@@ -3341,3 +3341,87 @@ msgstr "Clé enregistrée"
 msgctxt "IntelligenceSection"
 msgid "Coller la clé API"
 msgstr "Coller la clé API"
+
+msgctxt "DiffFlow"
+msgid "supprimé : {}"
+msgstr "supprimé : {}"
+
+msgctxt "DiffFlow"
+msgid "ajouté : {}"
+msgstr "ajouté : {}"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Comparaison avec l'original"
+msgstr "Comparaison avec l'original"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Transcription nettoyée"
+msgstr "Transcription nettoyée"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Nettoyer à nouveau"
+msgstr "Nettoyer à nouveau"
+
+msgctxt "CleanedTranscriptSection"
+msgid "L'IA corrige l'orthographe, la grammaire et les mots de remplissage de chaque segment. La transcription originale reste inchangée."
+msgstr "L'IA corrige l'orthographe, la grammaire et les mots de remplissage de chaque segment. La transcription originale reste inchangée."
+
+msgctxt "CleanedTranscriptSection"
+msgid "Nettoyé avec {}"
+msgstr "Nettoyé avec {}"
+
+msgctxt "CleanedTranscriptSection"
+msgid "La transcription a changé depuis le nettoyage. Nettoyez à nouveau pour l'inclure."
+msgstr "La transcription a changé depuis le nettoyage. Nettoyez à nouveau pour l'inclure."
+
+msgctxt "CleanedTranscriptSection"
+msgid "Nettoyage en cours…"
+msgstr "Nettoyage en cours…"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Nettoyage en cours… {} / {}"
+msgstr "Nettoyage en cours… {} / {}"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Échec du nettoyage : {}"
+msgstr "Échec du nettoyage : {}"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Nettoyer la transcription"
+msgstr "Nettoyer la transcription"
+
+msgctxt "CleanedTranscriptSection"
+msgid "original conservé"
+msgstr "original conservé"
+
+msgctxt "CleanedTranscriptSection"
+msgid "modifié"
+msgstr "modifié"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Modifier"
+msgstr "Modifier"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Texte nettoyé"
+msgstr "Texte nettoyé"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Annuler"
+msgstr "Annuler"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Enregistrer"
+msgstr "Enregistrer"
+
+msgctxt "MeetingDetail"
+msgid "Original"
+msgstr "Original"
+
+msgctxt "MeetingDetail"
+msgid "Nettoyée"
+msgstr "Nettoyée"
+
+msgctxt "MeetingDetail"
+msgid "Comparaison"
+msgstr "Comparaison"

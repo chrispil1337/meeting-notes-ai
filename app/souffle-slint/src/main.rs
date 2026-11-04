@@ -8,6 +8,7 @@ use souffle_slint::*;
 mod app_branch_ui;
 mod audio_player;
 mod audio_ui;
+mod cleaned_ui;
 mod data_ui;
 mod edit_learning;
 mod ia_ui;
@@ -535,6 +536,8 @@ fn populate_meeting_detail(window: &MainWindow, handle: &AppHandle, meeting: &Me
     window.set_meeting_detail_notes(meeting.notes.clone().unwrap_or_default().into());
     window.set_meeting_detail_notes_save_state(NotesSaveState::Idle);
     window.set_meeting_detail_transcript_segment_count(meeting.segments.len() as i32);
+    cleaned_ui::reset_cleanup_status(window);
+    cleaned_ui::populate_cleaned(window, handle, &meeting.id, meeting.segments.len());
 
     let summary_text = meeting.summary.clone().unwrap_or_default();
     let key_points: Vec<slint::SharedString> = summary::extract_key_points(&summary_text)
@@ -4670,6 +4673,8 @@ fn wire_callbacks(
             }
         });
     });
+
+    cleaned_ui::wire(window, tauri_handle.clone());
 
     let weak_sum = window.as_weak();
     let handle_sum = tauri_handle.clone();

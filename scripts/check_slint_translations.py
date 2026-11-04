@@ -15,6 +15,8 @@ UNCHANGED_ENGLISH = {
     "NOTES", "Notes", "PERMISSIONS", "Soufflé", "Suggestions", "Transcription", "×", "✕",
     # Symbols, acronyms and placeholder-only templates: identical spelling
     # in both languages is correct, not a missed translation.
+    # Meeting Notes AI: transcript view switch.
+    "Original",
     "USB", "Bluetooth", "⏸", "▶", "✓", "•",
     # Export file formats (MeetingDetail's Export menu): format names, not
     # prose - the same words in both languages.

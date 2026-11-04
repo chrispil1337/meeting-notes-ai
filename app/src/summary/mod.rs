@@ -10,6 +10,7 @@ mod polish;
 mod prompts;
 mod reduce;
 mod templates;
+pub mod transcript_cleanup;
 mod turns;
 
 use serde::{Deserialize, Serialize};

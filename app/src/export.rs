@@ -163,12 +163,69 @@ pub fn copy_audio_sessions(sources: &[PathBuf], dest: &Path) -> Result<Vec<PathB
 
 /// Render a meeting into the requested export format.
 pub fn render_meeting(meeting: &MeetingTranscript, format: ExportFormat) -> Result<String, String> {
+    render_meeting_with_cleaned(meeting, None, format)
+}
+
+/// Meeting Notes AI: like [`render_meeting`], with the AI-cleaned transcript
+/// as an extra section (Markdown) or field (JSON). The original transcript is
+/// always exported unchanged; subtitles (SRT/VTT) stay original-only.
+pub fn render_meeting_with_cleaned(
+    meeting: &MeetingTranscript,
+    cleaned: Option<&crate::db::cleaned::CleanedTranscript>,
+    format: ExportFormat,
+) -> Result<String, String> {
     match format {
-        ExportFormat::Markdown => Ok(render_markdown(meeting)),
-        ExportFormat::Json => render_json(meeting),
+        ExportFormat::Markdown => {
+            let mut out = render_markdown(meeting);
+            if let Some(cleaned) = cleaned {
+                render_cleaned_markdown(&mut out, cleaned);
+            }
+            Ok(out)
+        }
+        ExportFormat::Json => render_json_with_cleaned(meeting, cleaned),
         ExportFormat::Srt => Ok(render_srt(meeting)),
         ExportFormat::Vtt => Ok(render_vtt(meeting)),
     }
+}
+
+fn render_cleaned_markdown(out: &mut String, cleaned: &crate::db::cleaned::CleanedTranscript) {
+    out.push_str("\n## Cleaned Transcript\n\n");
+    out.push_str(&format!(
+        "_AI-cleaned with {} on {}. Please check before use; the original transcript is above._\n\n",
+        cleaned.model,
+        cleaned.generated_at.format("%Y-%m-%d %H:%M UTC")
+    ));
+    for segment in &cleaned.segments {
+        let text = segment.text.trim();
+        if text.is_empty() {
+            continue;
+        }
+        let total = segment.start_time.max(0.0) as u64;
+        let stamp = format!("{:02}:{:02}", total / 60, total % 60);
+        let speaker = segment
+            .speaker
+            .as_deref()
+            .and_then(Speaker::parse)
+            .map(|speaker| format!(" **{}:**", speaker.display_name()))
+            .unwrap_or_default();
+        out.push_str(&format!("[{stamp}]{speaker} {text}\n\n"));
+    }
+}
+
+fn render_json_with_cleaned(
+    meeting: &MeetingTranscript,
+    cleaned: Option<&crate::db::cleaned::CleanedTranscript>,
+) -> Result<String, String> {
+    let Some(cleaned) = cleaned else {
+        return render_json(meeting);
+    };
+    let mut value = serde_json::to_value(meeting).map_err(|e| format!("Serialize meeting: {e}"))?;
+    let cleaned_value =
+        serde_json::to_value(cleaned).map_err(|e| format!("Serialize cleaned transcript: {e}"))?;
+    if let serde_json::Value::Object(map) = &mut value {
+        map.insert("cleaned_transcript".to_string(), cleaned_value);
+    }
+    serde_json::to_string_pretty(&value).map_err(|e| format!("Serialize meeting: {e}"))
 }
 
 fn humanize_duration(total_seconds: f64) -> String {
@@ -926,5 +983,48 @@ mod tests {
              00:00:08.000 --> 00:00:09.000\n\
              Me: Third line\n";
         assert_eq!(rendered, expected);
+    }
+
+    #[test]
+    fn cleaned_transcript_is_exported_next_to_the_original() {
+        use crate::db::cleaned::{CleanedSegmentRecord, CleanedTranscript};
+        let meeting = crate::test_helpers::fixtures::sample_meeting("m-clean");
+        let cleaned = CleanedTranscript {
+            meeting_id: "m-clean".into(),
+            model: "deepseek-v4.1-flash".into(),
+            generated_at: meeting.started_at,
+            source_segment_count: 2,
+            segments: vec![CleanedSegmentRecord {
+                index: 0,
+                start_time: 65.0,
+                speaker: Some("me".into()),
+                original: "Hello world".into(),
+                text: "Hello, world.".into(),
+                flag: String::new(),
+                edited: false,
+            }],
+        };
+
+        let markdown =
+            render_meeting_with_cleaned(&meeting, Some(&cleaned), ExportFormat::Markdown).unwrap();
+        let (original, clean) = markdown.split_once("## Cleaned Transcript").unwrap();
+        assert!(original.contains("## Transcript"));
+        assert!(original.contains("Hello world"));
+        assert!(clean.contains("deepseek-v4.1-flash"));
+        assert!(clean.contains("[01:05] **Me:** Hello, world."));
+
+        let json =
+            render_meeting_with_cleaned(&meeting, Some(&cleaned), ExportFormat::Json).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(
+            value["cleaned_transcript"]["segments"][0]["text"],
+            "Hello, world."
+        );
+        assert_eq!(value["segments"][0]["text"], "Hello world");
+
+        assert_eq!(
+            render_meeting_with_cleaned(&meeting, None, ExportFormat::Markdown).unwrap(),
+            render_meeting(&meeting, ExportFormat::Markdown).unwrap()
+        );
     }
 }

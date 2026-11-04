@@ -121,11 +121,14 @@ fn write_meeting_folder(db: &Database, archive_dir: &Path, meeting_id: &str) -> 
     let meeting_dir = export::unique_dir(archive_dir, &base);
     fs::create_dir_all(&meeting_dir).map_err(|e| format!("Create meeting directory: {e}"))?;
 
-    let markdown = export::render_meeting(&meeting, ExportFormat::Markdown)?;
+    // Meeting Notes AI: the AI-cleaned transcript travels with the archive
+    let cleaned = db.load_cleaned_transcript(meeting_id)?;
+    let markdown =
+        export::render_meeting_with_cleaned(&meeting, cleaned.as_ref(), ExportFormat::Markdown)?;
     fs::write(meeting_dir.join("transcript.md"), markdown)
         .map_err(|e| format!("Write transcript.md: {e}"))?;
 
-    let json = export::render_meeting(&meeting, ExportFormat::Json)?;
+    let json = export::render_meeting_with_cleaned(&meeting, cleaned.as_ref(), ExportFormat::Json)?;
     fs::write(meeting_dir.join("meeting.json"), json)
         .map_err(|e| format!("Write meeting.json: {e}"))?;
 

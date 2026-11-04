@@ -1,0 +1,252 @@
+import { AppText, Typography } from "@typography";
+import { Theme } from "../theme.slint";
+import { ThemedButton, ThemedButtonKind } from "themed_button.slint";
+import { ThemedTextArea } from "themed_text_area.slint";
+import { SpeakerLabels } from "transcript_section.slint";
+import { SpeakerRole } from "../types.slint";
+
+// Meeting Notes AI: the AI-cleaned transcript next to the untouched
+// original (shown by TranscriptSection). Two views:
+// - cleaned: the cleaned text per segment, editable one segment at a time
+// - compare: word level changes (removed words red, added words green)
+// Segments where the AI result was not trusted keep the original text and
+// are marked.
+
+// One word of the comparison view; `kind`: 0 unchanged, 1 removed,
+// 2 added. Rust splits the diff into single words so lines can wrap; the
+// whitespace after a word is `trailing` and never highlighted.
+export struct CleanedDiffPiece {
+    text: string,
+    trailing: string,
+    kind: int,
+}
+
+export struct CleanedSegmentRow {
+    index: int,
+    timestamp: string,
+    has-speaker: bool,
+    speaker: SpeakerRole,
+    text: string,
+    original: string,
+    // The original was kept because the AI answer was missing/implausible.
+    flagged: bool,
+    edited: bool,
+    diff: [CleanedDiffPiece],
+}
+
+component DiffFlow inherits FlexboxLayout {
+    in property <[CleanedDiffPiece]> pieces;
+
+    flex-wrap: wrap;
+    spacing: 0px;
+
+    for piece in root.pieces: Rectangle {
+        width: piece-label.preferred-width + trailing-label.preferred-width;
+        height: piece-label.preferred-height;
+
+        Rectangle {
+            x: 0px;
+            width: piece-label.preferred-width;
+            background: piece.kind == 1 ? Theme.danger.with-alpha(0.18)
+                : piece.kind == 2 ? Theme.success.with-alpha(0.22)
+                : transparent;
+            border-radius: 2px;
+
+            piece-label := AppText {
+                text: piece.text;
+                typography: Typography.content;
+                color: piece.kind == 1 ? Theme.danger
+                    : piece.kind == 2 ? Theme.success
+                    : Theme.text-primary;
+                accessible-label: piece.kind == 1 ? @tr("supprimé : {}", piece.text)
+                    : piece.kind == 2 ? @tr("ajouté : {}", piece.text)
+                    : piece.text;
+            }
+        }
+
+        trailing-label := AppText {
+            x: piece-label.preferred-width;
+            text: piece.trailing;
+            typography: Typography.content;
+            color: Theme.text-primary;
+        }
+    }
+}
+
+export component CleanedTranscriptSection inherits VerticalLayout {
+    // false: no cleaned transcript yet (shows the explanation + button)
+    in property <bool> has-cleaned;
+    // true: the meeting got new segments after the cleanup
+    in property <bool> is-stale;
+    in property <bool> compare-mode;
+    in property <bool> is-generating;
+    // Finished / total AI requests of the running cleanup (total 0 = unknown).
+    in property <int> progress-done;
+    in property <int> progress-total;
+    in property <string> error;
+    in property <string> model-label;
+    in property <bool> can-generate: true;
+    in property <[CleanedSegmentRow]> rows;
+
+    callback cleanup-requested();
+    callback segment-edited(int, string);
+
+    // Row being edited (-1 none), and its draft text.
+    property <int> editing-index: -1;
+    property <string> draft;
+
+    spacing: 12px;
+    alignment: start;
+
+    HorizontalLayout {
+        spacing: 10px;
+        alignment: space-between;
+
+        AppText {
+            text: root.compare-mode ? @tr("Comparaison avec l'original") : @tr("Transcription nettoyée");
+            typography: Typography.section;
+            color: Theme.text-primary;
+            vertical-alignment: center;
+        }
+
+        if root.has-cleaned && !root.is-generating: ThemedButton {
+            text: @tr("Nettoyer à nouveau");
+            kind: ThemedButtonKind.ghost;
+            compact: true;
+            enabled: root.can-generate;
+            clicked => { root.cleanup-requested(); }
+        }
+    }
+
+    AppText {
+        text: @tr("L'IA corrige l'orthographe, la grammaire et les mots de remplissage de chaque segment. La transcription originale reste inchangée.");
+        typography: Typography.secondary;
+        color: Theme.text-muted;
+        wrap: word-wrap;
+    }
+
+    if root.has-cleaned && root.model-label != "": AppText {
+        text: @tr("Nettoyé avec {}", root.model-label);
+        typography: Typography.caption;
+        color: Theme.text-muted;
+    }
+
+    if root.is-stale && root.has-cleaned: AppText {
+        text: @tr("La transcription a changé depuis le nettoyage. Nettoyez à nouveau pour l'inclure.");
+        typography: Typography.small;
+        color: Theme.warning;
+        wrap: word-wrap;
+    }
+
+    if root.is-generating: AppText {
+        text: root.progress-total == 0 ? @tr("Nettoyage en cours…") : @tr("Nettoyage en cours… {} / {}", root.progress-done, root.progress-total);
+        typography: Typography.small;
+        color: Theme.text-muted;
+    }
+
+    if root.error != "": AppText {
+        text: @tr("Échec du nettoyage : {}", root.error);
+        typography: Typography.small;
+        color: Theme.danger;
+        wrap: word-wrap;
+    }
+
+    if !root.has-cleaned && !root.is-generating: HorizontalLayout {
+        alignment: start;
+        ThemedButton {
+            text: @tr("Nettoyer la transcription");
+            kind: ThemedButtonKind.primary;
+            enabled: root.can-generate;
+            clicked => { root.cleanup-requested(); }
+        }
+    }
+
+    if root.has-cleaned: VerticalLayout {
+        spacing: 14px;
+
+        for row in root.rows: VerticalLayout {
+            spacing: 4px;
+
+            HorizontalLayout {
+                spacing: 8px;
+                alignment: start;
+
+                AppText {
+                    text: row.timestamp;
+                    typography: Typography.micro-detail;
+                    color: Theme.text-muted;
+                    vertical-alignment: center;
+                }
+                if row.has-speaker: AppText {
+                    text: SpeakerLabels.of(row.speaker);
+                    typography: Typography.caption-emphasis;
+                    color: Theme.text-muted;
+                    vertical-alignment: center;
+                }
+                if row.flagged: AppText {
+                    text: @tr("original conservé");
+                    typography: Typography.micro;
+                    color: Theme.warning;
+                    vertical-alignment: center;
+                }
+                if row.edited: AppText {
+                    text: @tr("modifié");
+                    typography: Typography.micro;
+                    color: Theme.accent;
+                    vertical-alignment: center;
+                }
+                if !root.compare-mode && root.editing-index != row.index: ThemedButton {
+                    text: @tr("Modifier");
+                    kind: ThemedButtonKind.ghost;
+                    compact: true;
+                    clicked => {
+                        root.draft = row.text;
+                        root.editing-index = row.index;
+                    }
+                }
+            }
+
+            if root.compare-mode: DiffFlow {
+                pieces: row.diff;
+            }
+
+            if !root.compare-mode && root.editing-index != row.index: AppText {
+                text: row.text;
+                typography: Typography.content;
+                color: row.flagged ? Theme.text-muted : Theme.text-primary;
+                wrap: word-wrap;
+            }
+
+            if !root.compare-mode && root.editing-index == row.index: VerticalLayout {
+                spacing: 6px;
+
+                ThemedTextArea {
+                    text: root.draft;
+                    area-height: 90px;
+                    control-label: @tr("Texte nettoyé");
+                    edited(value) => { root.draft = value; }
+                }
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: end;
+
+                    ThemedButton {
+                        text: @tr("Annuler");
+                        kind: ThemedButtonKind.ghost;
+                        compact: true;
+                        clicked => { root.editing-index = -1; }
+                    }
+                    ThemedButton {
+                        text: @tr("Enregistrer");
+                        kind: ThemedButtonKind.primary;
+                        compact: true;
+                        clicked => {
+                            root.segment-edited(row.index, root.draft);
+                            root.editing-index = -1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

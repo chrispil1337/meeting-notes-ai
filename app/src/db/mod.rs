@@ -1,3 +1,4 @@
+pub mod cleaned;
 pub mod dictation;
 pub mod dictionary;
 pub mod meetings;
@@ -229,6 +230,18 @@ impl Database {
                     .map_err(|e| format!("Update schema version v17: {e}"))?;
                 tx.commit()
                     .map_err(|e| format!("Commit v17 migration: {e}"))?;
+            }
+
+            if current_version < 18 {
+                let tx = conn
+                    .transaction()
+                    .map_err(|e| format!("Begin v18 migration: {e}"))?;
+                tx.execute_batch(schema::CREATE_CLEANED_TRANSCRIPTS)
+                    .map_err(|e| format!("Schema migration v18 (cleaned transcripts): {e}"))?;
+                tx.execute(&update_version_sql, [18])
+                    .map_err(|e| format!("Update schema version v18: {e}"))?;
+                tx.commit()
+                    .map_err(|e| format!("Commit v18 migration: {e}"))?;
             }
 
             info!("Schema migration complete");

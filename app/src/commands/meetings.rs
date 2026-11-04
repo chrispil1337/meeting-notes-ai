@@ -429,7 +429,9 @@ pub async fn save_meeting_export(
     let meeting = state.db.load_meeting(&id)?;
     let filename = export::export_default_filename(&meeting, format);
     let extension = export::export_extension(format).to_string();
-    let rendered = export::render_meeting(&meeting, format)?;
+    // Meeting Notes AI: include the AI-cleaned transcript when there is one
+    let cleaned = state.db.load_cleaned_transcript(&id)?;
+    let rendered = export::render_meeting_with_cleaned(&meeting, cleaned.as_ref(), format)?;
 
     let Some(path) = pick_save_path(&filename, &extension)? else {
         return Ok(());
@@ -502,6 +504,52 @@ pub async fn pull_recommended_ollama_model(
     })
     .await?;
     Ok(model.to_string())
+}
+
+/// Meeting Notes AI: clean up the meeting transcript with the selected model
+/// and store the result next to the untouched original. Progress counts the
+/// AI requests; the original transcript is never modified.
+pub async fn clean_meeting_transcript(
+    state: Arc<AppState>,
+    id: String,
+    model: String,
+    channel: ProgressChannel<crate::summary::transcript_cleanup::CleanupProgress>,
+) -> Result<crate::db::cleaned::CleanedTranscript, String> {
+    let meeting = state.db.load_meeting(&id)?;
+    if meeting
+        .segments
+        .iter()
+        .all(|segment| segment.text.trim().is_empty())
+    {
+        return Err("Transcript has no text".into());
+    }
+    let settings = AppSettings::load(&state.db)?;
+    let records = crate::summary::transcript_cleanup::clean_transcript_segments(
+        &meeting.segments,
+        &model,
+        &settings.ollama_url,
+        move |progress| channel.send(progress),
+    )
+    .await?;
+    let cleaned = crate::db::cleaned::CleanedTranscript {
+        meeting_id: id,
+        model,
+        generated_at: chrono::Utc::now(),
+        source_segment_count: meeting.segments.len(),
+        segments: records,
+    };
+    state.db.save_cleaned_transcript(&cleaned)?;
+    Ok(cleaned)
+}
+
+/// Meeting Notes AI: manual edit of one cleaned segment.
+pub fn update_cleaned_transcript_segment(
+    state: &AppState,
+    id: &str,
+    index: usize,
+    text: &str,
+) -> Result<bool, String> {
+    state.db.update_cleaned_segment_text(id, index, text)
 }
 
 /// Summarize a meeting transcript using the selected provider, streaming results back.

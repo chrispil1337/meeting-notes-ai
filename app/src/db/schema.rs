@@ -44,6 +44,19 @@ pub const CREATE_MEETINGS_V1: &str = "
     );
 ";
 
+/// Meeting Notes AI (v18): the AI-cleaned transcript of a meeting, kept next
+/// to the untouched original. One row per meeting; `segments` is a JSON
+/// array of `CleanedSegmentRecord` with a snapshot of each original text.
+pub const CREATE_CLEANED_TRANSCRIPTS: &str = "
+    CREATE TABLE IF NOT EXISTS cleaned_transcripts (
+        meeting_id TEXT PRIMARY KEY REFERENCES meetings(id) ON DELETE CASCADE,
+        model TEXT NOT NULL,
+        generated_at TEXT NOT NULL,
+        source_segment_count INTEGER NOT NULL,
+        segments TEXT NOT NULL
+    );
+";
+
 pub fn create_meetings_v3() -> String {
     format!(
         "

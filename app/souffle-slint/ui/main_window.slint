@@ -22,6 +22,8 @@ import { AppBranchFallback, AppBranchTestPhase } from "types.slint";
 export { AppBranchFallback, AppBranchTestPhase }
 import { TimelineDayGroup, UpcomingEvent } from "components/timeline_section.slint";
 import { TranscriptBlock } from "components/transcript_section.slint";
+import { CleanedSegmentRow, CleanedDiffPiece } from "components/cleaned_transcript_section.slint";
+export { CleanedSegmentRow, CleanedDiffPiece }
 import { TranscriptWord } from "components/transcript_words.slint";
 import { StructuredActionItem } from "components/summary_section.slint";
 import { RecordingMode, LiveSystemAudio, MicStall, MeetingIdleBanner, WakeResumeNotice,SpeakerRole, TimelineFilter, TimelineKind, NotesSaveState, ModelPhase, TranscriptionPhase, UpcomingPhase, SettingsTab, SettingsInteraction, AppTheme, AppLocale, PasteMethod, MeetingLanguage, LogLevel, AudioRetention, AccessState, PermissionKind, ShortcutField, ShortcutNotice, SettingsCaptureError, SummaryProvider, AppleIntelligenceUnavailableReason, OnboardingStep, UpdatePhase, InstallBlockReason, UpdateRowStatus, MeetingExportFormat, DictionaryLearningMode } from "types.slint";
@@ -183,6 +185,18 @@ export component MainWindow inherits Window {
     in property <[string]> meeting-detail-summary-available-model-ids;
     in-out property <string> meeting-detail-summary-selected-model-id;
     in-out property <string> meeting-detail-summary-selected-model-label;
+    // Meeting Notes AI: AI-cleaned transcript (0 original, 1 cleaned, 2 compare).
+    in-out property <int> meeting-detail-transcript-view: 0;
+    in property <bool> meeting-detail-cleaned-has: false;
+    in property <bool> meeting-detail-cleaned-is-stale: false;
+    in property <bool> meeting-detail-cleaned-is-generating: false;
+    in property <int> meeting-detail-cleaned-progress-done: 0;
+    in property <int> meeting-detail-cleaned-progress-total: 0;
+    in property <string> meeting-detail-cleaned-error: "";
+    in property <string> meeting-detail-cleaned-model-label: "";
+    in property <[CleanedSegmentRow]> meeting-detail-cleaned-rows;
+    callback meeting-detail-cleanup();
+    callback meeting-detail-cleaned-segment-edited(int, string);
     in property <bool> meeting-detail-can-resume: false;
     in property <string> meeting-detail-resume-error: "";
     in property <string> meeting-detail-delete-error: "";
@@ -774,7 +788,18 @@ export component MainWindow inherits Window {
         summary-selected-model-id <=> root.meeting-detail-summary-selected-model-id;
         summary-selected-model-label <=> root.meeting-detail-summary-selected-model-label;
         // Resuming appends to the transcript the summary is being built from.
-        can-resume: root.meeting-detail-can-resume && !root.meeting-detail-summary-is-generating;
+        can-resume: root.meeting-detail-can-resume && !root.meeting-detail-summary-is-generating && !root.meeting-detail-cleaned-is-generating;
+        transcript-view <=> root.meeting-detail-transcript-view;
+        cleaned-has: root.meeting-detail-cleaned-has;
+        cleaned-is-stale: root.meeting-detail-cleaned-is-stale;
+        cleaned-is-generating: root.meeting-detail-cleaned-is-generating;
+        cleaned-progress-done: root.meeting-detail-cleaned-progress-done;
+        cleaned-progress-total: root.meeting-detail-cleaned-progress-total;
+        cleaned-error: root.meeting-detail-cleaned-error;
+        cleaned-model-label: root.meeting-detail-cleaned-model-label;
+        cleaned-rows: root.meeting-detail-cleaned-rows;
+        cleanup-requested => { root.meeting-detail-cleanup(); }
+        cleaned-segment-edited(index, text) => { root.meeting-detail-cleaned-segment-edited(index, text); }
         resume-error: root.meeting-detail-resume-error;
         wake-resume-notice: root.wake-resume-notice;
         wake-resume-notice-dismissed => { root.wake-resume-notice-dismissed(); }

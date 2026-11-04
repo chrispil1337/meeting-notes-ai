@@ -9,6 +9,8 @@ import { LucideIcon, IconSet } from "components/lucide_icon.slint";
 import { ThemedTextArea } from "components/themed_text_area.slint";
 import { ThemedButton, ThemedButtonKind } from "components/themed_button.slint";
 import { Theme } from "theme.slint";
+import { FilterChip } from "components/filter_chip.slint";
+import { CleanedTranscriptSection, CleanedSegmentRow } from "components/cleaned_transcript_section.slint";
 
 // Port of MeetingHeaderSection.svelte + MeetingNotesSection.svelte -
 // completed-meeting variant only. The live-recording variant of
@@ -123,6 +125,17 @@ export component MeetingDetail inherits Rectangle {
     in property <[string]> summary-available-model-ids;
     in-out property <string> summary-selected-model-id;
     in-out property <string> summary-selected-model-label;
+    // Meeting Notes AI: AI-cleaned transcript (see CleanedTranscriptSection).
+    // 0 original, 1 cleaned, 2 comparison.
+    in-out property <int> transcript-view: 0;
+    in property <bool> cleaned-has: false;
+    in property <bool> cleaned-is-stale: false;
+    in property <bool> cleaned-is-generating: false;
+    in property <int> cleaned-progress-done: 0;
+    in property <int> cleaned-progress-total: 0;
+    in property <string> cleaned-error: "";
+    in property <string> cleaned-model-label: "";
+    in property <[CleanedSegmentRow]> cleaned-rows;
     in property <bool> can-resume: true;
     in property <string> resume-error;
     // SOU-295: only `interrupted` is shown here (the recording view shows
@@ -156,6 +169,9 @@ export component MeetingDetail inherits Rectangle {
     callback export-audio-requested();
     // Copy just the transcript text to the pasteboard.
     callback copy-transcript-requested();
+    // Clean the transcript with the model selected for the summary.
+    callback cleanup-requested();
+    callback cleaned-segment-edited(int, string);
 
     property <bool> editing-title: false;
     property <string> title-draft;
@@ -803,7 +819,45 @@ export component MeetingDetail inherits Rectangle {
                     seek-requested(fraction) => { root.audio-seek-requested(fraction); }
                 }
 
-                if !root.is-empty-meeting: TranscriptSection {
+                if !root.is-empty-meeting: HorizontalLayout {
+                    vertical-stretch: 0;
+                    spacing: 6px;
+                    alignment: start;
+
+                    FilterChip {
+                        text: @tr("Original");
+                        selected: root.transcript-view == 0;
+                        clicked => { root.transcript-view = 0; }
+                    }
+                    FilterChip {
+                        text: @tr("Nettoyée");
+                        selected: root.transcript-view == 1;
+                        clicked => { root.transcript-view = 1; }
+                    }
+                    FilterChip {
+                        text: @tr("Comparaison");
+                        selected: root.transcript-view == 2;
+                        clicked => { root.transcript-view = 2; }
+                    }
+                }
+
+                if !root.is-empty-meeting && root.transcript-view != 0: CleanedTranscriptSection {
+                    vertical-stretch: 0;
+                    has-cleaned: root.cleaned-has;
+                    is-stale: root.cleaned-is-stale;
+                    compare-mode: root.transcript-view == 2;
+                    is-generating: root.cleaned-is-generating;
+                    progress-done: root.cleaned-progress-done;
+                    progress-total: root.cleaned-progress-total;
+                    error: root.cleaned-error;
+                    model-label: root.cleaned-model-label;
+                    can-generate: root.summary-available-model-ids.length > 0 && !root.summary-is-generating;
+                    rows: root.cleaned-rows;
+                    cleanup-requested => { root.cleanup-requested(); }
+                    segment-edited(index, text) => { root.cleaned-segment-edited(index, text); }
+                }
+
+                if !root.is-empty-meeting && root.transcript-view == 0: TranscriptSection {
                     blocks: root.transcript-blocks;
                     segment-count: root.transcript-segment-count;
                     has-audio: root.has-audio;

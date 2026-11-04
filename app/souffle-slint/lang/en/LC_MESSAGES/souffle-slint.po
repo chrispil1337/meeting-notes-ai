@@ -3333,3 +3333,87 @@ msgstr "Key saved"
 msgctxt "IntelligenceSection"
 msgid "Coller la clé API"
 msgstr "Paste the API key"
+
+msgctxt "DiffFlow"
+msgid "supprimé : {}"
+msgstr "removed: {}"
+
+msgctxt "DiffFlow"
+msgid "ajouté : {}"
+msgstr "added: {}"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Comparaison avec l'original"
+msgstr "Comparison with the original"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Transcription nettoyée"
+msgstr "Cleaned transcript"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Nettoyer à nouveau"
+msgstr "Clean again"
+
+msgctxt "CleanedTranscriptSection"
+msgid "L'IA corrige l'orthographe, la grammaire et les mots de remplissage de chaque segment. La transcription originale reste inchangée."
+msgstr "The AI fixes spelling, grammar and filler words in every segment. The original transcript stays unchanged."
+
+msgctxt "CleanedTranscriptSection"
+msgid "Nettoyé avec {}"
+msgstr "Cleaned with {}"
+
+msgctxt "CleanedTranscriptSection"
+msgid "La transcription a changé depuis le nettoyage. Nettoyez à nouveau pour l'inclure."
+msgstr "The transcript changed since it was cleaned. Clean again to include the changes."
+
+msgctxt "CleanedTranscriptSection"
+msgid "Nettoyage en cours…"
+msgstr "Cleaning…"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Nettoyage en cours… {} / {}"
+msgstr "Cleaning… {} / {}"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Échec du nettoyage : {}"
+msgstr "Cleanup failed: {}"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Nettoyer la transcription"
+msgstr "Clean transcript"
+
+msgctxt "CleanedTranscriptSection"
+msgid "original conservé"
+msgstr "original kept"
+
+msgctxt "CleanedTranscriptSection"
+msgid "modifié"
+msgstr "edited"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Modifier"
+msgstr "Edit"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Texte nettoyé"
+msgstr "Cleaned text"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Annuler"
+msgstr "Cancel"
+
+msgctxt "CleanedTranscriptSection"
+msgid "Enregistrer"
+msgstr "Save"
+
+msgctxt "MeetingDetail"
+msgid "Original"
+msgstr "Original"
+
+msgctxt "MeetingDetail"
+msgid "Nettoyée"
+msgstr "Cleaned"
+
+msgctxt "MeetingDetail"
+msgid "Comparaison"
+msgstr "Comparison"

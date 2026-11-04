@@ -19,13 +19,15 @@ pub const APP_IDENTIFIER: &str = "com.souffle.desktop";
 pub const NIGHTLY_APP_IDENTIFIER: &str = "com.souffle.desktop.nightly";
 pub const DB_FILENAME: &str = "souffle.db";
 
-/// Schema version 17 adds the local dictionary suggestion queue. Meeting
-/// and dictation columns consumed by the read-only sidecar stay compatible.
+/// Schema version 17 adds the local dictionary suggestion queue. Version 18
+/// (Meeting Notes AI) adds the `cleaned_transcripts` table for the
+/// AI-cleaned transcript kept next to the original. Meeting and dictation
+/// columns consumed by the read-only sidecar stay compatible.
 ///
 /// Both the writer (`db::schema` in the app) and the reader (`souffle-mcp`)
 /// build against this number. The sidecar refuses to serve a database whose
 /// stored version is higher, because the columns it reads may have moved.
-pub const SCHEMA_VERSION: i64 = 17;
+pub const SCHEMA_VERSION: i64 = 18;
 
 /// Who produced a segment in a meeting: the microphone is the local user
 /// (`Me`), system audio is everyone else (`Them`). `None` = single-stream
