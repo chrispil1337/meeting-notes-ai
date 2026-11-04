@@ -2,17 +2,37 @@ use crate::engine::TranscriptionSegment;
 use crate::lid::LanguageCode;
 use crate::settings::MeetingTranscriptionLanguage;
 
-/// Language the summary must be written in. Same two codes the meeting
-/// language setting and segment `language` fields already use.
-pub use crate::lid::LanguageCode as SummaryLanguage;
+/// Language the summary must be written in.
+///
+/// Meeting Notes AI adds German: Whisper tags German segments with `de`, and
+/// a German meeting must not be summarized in English. The speech-side
+/// language identification (`crate::lid::LanguageCode`, Kyutai heuristics)
+/// stays English/French only, so this is a separate, wider enum.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum SummaryLanguage {
+    En,
+    Fr,
+    De,
+}
+
+impl From<LanguageCode> for SummaryLanguage {
+    fn from(code: LanguageCode) -> Self {
+        match code {
+            LanguageCode::En => SummaryLanguage::En,
+            LanguageCode::Fr => SummaryLanguage::Fr,
+        }
+    }
+}
 
 /// English display name used in the system-prompt instruction. The rest of
 /// the prompt stays English: a 7B follows the instruction language, so the
 /// language *name* has to be explicit.
 fn language_english_name(language: SummaryLanguage) -> &'static str {
     match language {
-        LanguageCode::En => "English",
-        LanguageCode::Fr => "French",
+        SummaryLanguage::En => "English",
+        SummaryLanguage::Fr => "French",
+        SummaryLanguage::De => "German",
     }
 }
 
@@ -26,8 +46,9 @@ fn language_from_tag(raw: &str) -> Option<SummaryLanguage> {
         .unwrap_or("")
         .to_ascii_lowercase();
     match primary.as_str() {
-        "en" => Some(LanguageCode::En),
-        "fr" => Some(LanguageCode::Fr),
+        "en" => Some(SummaryLanguage::En),
+        "fr" => Some(SummaryLanguage::Fr),
+        "de" => Some(SummaryLanguage::De),
         _ => None,
     }
 }
@@ -39,17 +60,28 @@ pub fn majority_language_from_segments(
 ) -> Option<SummaryLanguage> {
     let mut en = 0u32;
     let mut fr = 0u32;
+    let mut de = 0u32;
     for segment in segments {
         match segment.language.as_deref().and_then(language_from_tag) {
-            Some(LanguageCode::En) => en += 1,
-            Some(LanguageCode::Fr) => fr += 1,
+            Some(SummaryLanguage::En) => en += 1,
+            Some(SummaryLanguage::Fr) => fr += 1,
+            Some(SummaryLanguage::De) => de += 1,
             None => {}
         }
     }
-    match (en, fr) {
-        (0, 0) => None,
-        (e, f) if f > e => Some(LanguageCode::Fr),
-        (e, f) if e > f => Some(LanguageCode::En),
+    // A strict winner only; ties and "nothing identified" stay undecided.
+    let counts = [
+        (SummaryLanguage::En, en),
+        (SummaryLanguage::Fr, fr),
+        (SummaryLanguage::De, de),
+    ];
+    let best = counts.iter().map(|(_, count)| *count).max().unwrap_or(0);
+    if best == 0 {
+        return None;
+    }
+    let mut winners = counts.iter().filter(|(_, count)| *count == best);
+    match (winners.next(), winners.next()) {
+        (Some((language, _)), None) => Some(*language),
         _ => None,
     }
 }
@@ -65,9 +97,10 @@ pub fn resolve_summary_language(
     ui_locale: &str,
 ) -> SummaryLanguage {
     LanguageCode::from_setting(setting)
+        .map(SummaryLanguage::from)
         .or_else(|| majority_language_from_segments(segments))
         .or_else(|| language_from_tag(ui_locale))
-        .unwrap_or(LanguageCode::En)
+        .unwrap_or(SummaryLanguage::En)
 }
 
 /// Append an explicit output-language rule. "Same language as the
@@ -88,12 +121,12 @@ pub fn with_language_instruction(system_prompt: &str, language: SummaryLanguage)
 
 #[cfg(test)]
 mod tests {
+    use super::SummaryLanguage;
     use super::{
         majority_language_from_segments, resolve_summary_language, with_language_instruction,
     };
     use crate::constants::{OLLAMA_MAP_PROMPT, OLLAMA_MERGE_PROMPT, OLLAMA_SUMMARIZE_PROMPT};
     use crate::engine::TranscriptionSegment;
-    use crate::lid::LanguageCode;
     use crate::settings::MeetingTranscriptionLanguage;
 
     fn seg(language: Option<&str>) -> TranscriptionSegment {
@@ -109,6 +142,26 @@ mod tests {
     }
 
     #[test]
+    fn german_meetings_are_summarized_in_german() {
+        let segments = [seg(Some("de")), seg(Some("de")), seg(Some("en"))];
+        assert_eq!(
+            majority_language_from_segments(&segments),
+            Some(SummaryLanguage::De)
+        );
+        assert_eq!(
+            resolve_summary_language(MeetingTranscriptionLanguage::Auto, &segments, "en"),
+            SummaryLanguage::De
+        );
+        assert!(with_language_instruction("Prompt", SummaryLanguage::De).contains("in German"));
+    }
+
+    #[test]
+    fn three_way_tie_is_undecided() {
+        let segments = [seg(Some("de")), seg(Some("fr")), seg(Some("en"))];
+        assert_eq!(majority_language_from_segments(&segments), None);
+    }
+
+    #[test]
     fn majority_mixed_french_wins() {
         let segments: Vec<_> = std::iter::repeat_with(|| seg(Some("fr")))
             .take(20)
@@ -116,7 +169,7 @@ mod tests {
             .collect();
         assert_eq!(
             majority_language_from_segments(&segments),
-            Some(LanguageCode::Fr)
+            Some(SummaryLanguage::Fr)
         );
     }
 
@@ -125,7 +178,7 @@ mod tests {
         let segments = [seg(Some("en")), seg(Some("en")), seg(Some("fr"))];
         assert_eq!(
             majority_language_from_segments(&segments),
-            Some(LanguageCode::En)
+            Some(SummaryLanguage::En)
         );
     }
 
@@ -153,7 +206,7 @@ mod tests {
         ];
         assert_eq!(
             majority_language_from_segments(&segments),
-            Some(LanguageCode::Fr)
+            Some(SummaryLanguage::Fr)
         );
     }
 
@@ -162,7 +215,7 @@ mod tests {
         let french_meeting = [seg(Some("fr")), seg(Some("fr")), seg(Some("en"))];
         assert_eq!(
             resolve_summary_language(MeetingTranscriptionLanguage::En, &french_meeting, "fr"),
-            LanguageCode::En
+            SummaryLanguage::En
         );
         assert_eq!(
             resolve_summary_language(
@@ -170,7 +223,7 @@ mod tests {
                 &[seg(Some("en")), seg(Some("en"))],
                 "en"
             ),
-            LanguageCode::Fr
+            SummaryLanguage::Fr
         );
     }
 
@@ -179,27 +232,27 @@ mod tests {
         let french = [seg(Some("fr")), seg(Some("fr")), seg(Some("en"))];
         assert_eq!(
             resolve_summary_language(MeetingTranscriptionLanguage::Auto, &french, "en"),
-            LanguageCode::Fr
+            SummaryLanguage::Fr
         );
 
         let unidentified = [seg(None), seg(Some("unknown"))];
         assert_eq!(
             resolve_summary_language(MeetingTranscriptionLanguage::Auto, &unidentified, "fr-CA"),
-            LanguageCode::Fr
+            SummaryLanguage::Fr
         );
         assert_eq!(
             resolve_summary_language(MeetingTranscriptionLanguage::Auto, &unidentified, ""),
-            LanguageCode::En
+            SummaryLanguage::En
         );
 
         let tied = [seg(Some("fr")), seg(Some("en"))];
         assert_eq!(
             resolve_summary_language(MeetingTranscriptionLanguage::Auto, &tied, "fr"),
-            LanguageCode::Fr
+            SummaryLanguage::Fr
         );
         assert_eq!(
             resolve_summary_language(MeetingTranscriptionLanguage::Auto, &tied, "en"),
-            LanguageCode::En
+            SummaryLanguage::En
         );
     }
 
@@ -210,7 +263,7 @@ mod tests {
             &[seg(Some("fr")), seg(Some("fr")), seg(Some("en"))],
             "en",
         );
-        assert_eq!(language, LanguageCode::Fr);
+        assert_eq!(language, SummaryLanguage::Fr);
 
         let map = with_language_instruction(OLLAMA_MAP_PROMPT, language);
         let merge = with_language_instruction(OLLAMA_MERGE_PROMPT, language);
