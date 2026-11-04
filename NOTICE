@@ -1,0 +1,26 @@
+Meeting Notes AI
+================
+
+Meeting Notes AI is a modified version of Soufflé
+(https://github.com/damione1/souffle), Copyright (C) Damien Goehrig,
+licensed under the GNU General Public License, version 3 or (at your
+option) any later version.
+
+Modifications (Copyright (C) 2026 chrispil1337), among others:
+- Ollama Cloud support with the API key in the macOS Keychain
+- AI-cleaned transcript stored next to the untouched original, with
+  word-level comparison and manual editing (new crate `app/mna-core`,
+  `app/src/summary/transcript_cleanup.rs`, `app/src/db/cleaned.rs`)
+- Import of audio files / voice memos as meetings (`app/src/import.rs`)
+- German summaries
+- Own name, bundle identifier, data folder and icon
+
+Meeting Notes AI is distributed under the same license, GPL-3.0-or-later.
+The full license text is in LICENSE.md. This program comes with ABSOLUTELY
+NO WARRANTY.
+
+Internal crate and module names (souffle, souffle-slint, souffle-schema, …)
+were kept on purpose so upstream changes can still be merged.
+
+Third-party components keep their own licenses (see the respective crates
+and app/souffle-typography/assets/LICENSE.txt for the bundled fonts).
