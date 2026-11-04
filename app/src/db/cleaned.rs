@@ -16,7 +16,9 @@ use super::Database;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CleanedSegmentRecord {
-    /// Position of the original segment in `MeetingTranscript::segments`.
+    /// Position of the cleaned paragraph in
+    /// `summary::transcript_cleanup::transcript_paragraphs` (paragraphs as the
+    /// meeting page shows them; some engines emit one segment per word).
     pub index: usize,
     pub start_time: f64,
     /// `"me"` / `"them"` for diarized meetings, `None` otherwise.
