@@ -16,7 +16,7 @@
 use std::path::PathBuf;
 
 use objc2::MainThreadMarker;
-use objc2_app_kit::{NSModalResponseOK, NSSavePanel};
+use objc2_app_kit::{NSModalResponseOK, NSOpenPanel, NSSavePanel};
 use objc2_foundation::NSString;
 
 /// Show a native save panel. Returns `Ok(None)` if the user cancels.
@@ -60,6 +60,38 @@ pub fn pick_save_path(file_name: &str, extension: &str) -> Result<Option<PathBuf
         PathBuf::from(path.to_string()),
         extension,
     )))
+}
+
+/// Meeting Notes AI: native open panel for audio files to import (voice
+/// memos etc.), several at once. Returns an empty list if the user cancels.
+pub fn pick_audio_files(extensions: &[&str]) -> Result<Vec<PathBuf>, String> {
+    crate::tray::activate_app();
+
+    let Some(mtm) = MainThreadMarker::new() else {
+        return Err("Open dialog must run on the main thread".into());
+    };
+
+    let panel = NSOpenPanel::openPanel(mtm);
+    panel.setCanChooseFiles(true);
+    panel.setCanChooseDirectories(false);
+    panel.setAllowsMultipleSelection(true);
+    let types: Vec<objc2::rc::Retained<NSString>> = extensions
+        .iter()
+        .map(|extension| NSString::from_str(extension))
+        .collect();
+    let type_refs: Vec<&NSString> = types.iter().map(|t| t.as_ref()).collect();
+    // Same deprecated-but-working extension filter as `pick_save_path`.
+    #[allow(deprecated)]
+    panel.setAllowedFileTypes(Some(&objc2_foundation::NSArray::from_slice(&type_refs)));
+
+    if panel.runModal() != NSModalResponseOK {
+        return Ok(Vec::new());
+    }
+    Ok(panel
+        .URLs()
+        .iter()
+        .filter_map(|url| url.path().map(|path| PathBuf::from(path.to_string())))
+        .collect())
 }
 
 /// `file_name` without a trailing `.{extension}`, if it has one.

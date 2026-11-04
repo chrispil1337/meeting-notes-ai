@@ -1,0 +1,92 @@
+import { AppText, Typography } from "@typography";
+import { Theme } from "../theme.slint";
+import { ThemedButton, ThemedButtonKind } from "themed_button.slint";
+
+// Meeting Notes AI: "Import audio…" on the home page. Imports voice memos
+// and other audio files as meetings (transcribed with the chosen model);
+// Rust shows the file picker, runs the files one after another and reports
+// progress here.
+export component AudioImportRow inherits VerticalLayout {
+    in property <bool> enabled: true;
+    in property <bool> busy: false;
+    // File being imported, its position and the number of files.
+    in property <string> file-name;
+    in property <int> file-index;
+    in property <int> file-count;
+    // 0 reading the file, 1 loading the model, 2 transcribing, 3 saving.
+    in property <int> stage;
+    in property <int> percent;
+    in property <string> error;
+    // Meetings added by the last import run (0 = nothing to report).
+    in property <int> imported-count;
+
+    callback import-requested();
+    callback cancel-requested();
+    callback dismissed();
+
+    spacing: 6px;
+
+    HorizontalLayout {
+        spacing: 10px;
+        alignment: start;
+
+        if !root.busy: ThemedButton {
+            text: @tr("Importer un fichier audio…");
+            kind: ThemedButtonKind.ghost;
+            compact: true;
+            enabled: root.enabled;
+            clicked => { root.import-requested(); }
+        }
+
+        if root.busy: AppText {
+            vertical-alignment: center;
+            text: root.stage == 0 ? @tr("Lecture de « {} » ({}/{})…", root.file-name, root.file-index, root.file-count)
+                : root.stage == 1 ? @tr("Chargement du modèle de transcription…")
+                : root.stage == 2 ? @tr("Transcription de « {} » : {} % ({}/{})", root.file-name, root.percent, root.file-index, root.file-count)
+                : @tr("Enregistrement de la réunion…");
+            typography: Typography.small;
+            color: Theme.text-muted;
+        }
+
+        if root.busy: ThemedButton {
+            text: @tr("Annuler");
+            kind: ThemedButtonKind.ghost;
+            compact: true;
+            clicked => { root.cancel-requested(); }
+        }
+
+        if !root.busy && root.imported-count > 0 && root.error == "": AppText {
+            vertical-alignment: center;
+            text: @tr("Importation terminée : {} réunion(s) ajoutée(s) à l'historique.", root.imported-count);
+            typography: Typography.small;
+            color: Theme.success;
+        }
+    }
+
+    if root.error != "": HorizontalLayout {
+        spacing: 10px;
+        alignment: start;
+
+        AppText {
+            text: @tr("Échec de l'importation : {}", root.error);
+            typography: Typography.small;
+            color: Theme.danger;
+            wrap: word-wrap;
+            horizontal-stretch: 1;
+        }
+        ThemedButton {
+            text: @tr("OK");
+            kind: ThemedButtonKind.ghost;
+            compact: true;
+            clicked => { root.dismissed(); }
+        }
+    }
+
+    AppText {
+        visible: !root.busy && root.error == "" && root.imported-count == 0;
+        text: @tr("Mémos vocaux et fichiers audio (m4a, mp3, wav, flac, ogg) deviennent des réunions : transcription, résumé et nettoyage par IA.");
+        typography: Typography.caption;
+        color: Theme.text-muted;
+        wrap: word-wrap;
+    }
+}

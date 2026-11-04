@@ -3425,3 +3425,43 @@ msgstr "Nettoyée"
 msgctxt "MeetingDetail"
 msgid "Comparaison"
 msgstr "Comparaison"
+
+msgctxt "AudioImportRow"
+msgid "Importer un fichier audio…"
+msgstr "Importer un fichier audio…"
+
+msgctxt "AudioImportRow"
+msgid "Lecture de « {} » ({}/{})…"
+msgstr "Lecture de « {} » ({}/{})…"
+
+msgctxt "AudioImportRow"
+msgid "Chargement du modèle de transcription…"
+msgstr "Chargement du modèle de transcription…"
+
+msgctxt "AudioImportRow"
+msgid "Transcription de « {} » : {} % ({}/{})"
+msgstr "Transcription de « {} » : {} % ({}/{})"
+
+msgctxt "AudioImportRow"
+msgid "Enregistrement de la réunion…"
+msgstr "Enregistrement de la réunion…"
+
+msgctxt "AudioImportRow"
+msgid "Annuler"
+msgstr "Annuler"
+
+msgctxt "AudioImportRow"
+msgid "Importation terminée : {} réunion(s) ajoutée(s) à l'historique."
+msgstr "Importation terminée : {} réunion(s) ajoutée(s) à l'historique."
+
+msgctxt "AudioImportRow"
+msgid "Échec de l'importation : {}"
+msgstr "Échec de l'importation : {}"
+
+msgctxt "AudioImportRow"
+msgid "OK"
+msgstr "OK"
+
+msgctxt "AudioImportRow"
+msgid "Mémos vocaux et fichiers audio (m4a, mp3, wav, flac, ogg) deviennent des réunions : transcription, résumé et nettoyage par IA."
+msgstr "Mémos vocaux et fichiers audio (m4a, mp3, wav, flac, ogg) deviennent des réunions : transcription, résumé et nettoyage par IA."

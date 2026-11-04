@@ -186,7 +186,7 @@ fn run(cli: CliArgs) -> i32 {
         return 1;
     }
 
-    let wav = match load_wav(&wav_path) {
+    let wav = match load_audio(&wav_path) {
         Ok(w) => w,
         Err(e) => {
             eprintln!("Error: {e}");
@@ -284,6 +284,25 @@ fn load_persisted_profile() -> Result<TranscriptionProfile, String> {
 struct WavAudio {
     samples: Vec<f32>,
     sample_rate: u32,
+}
+
+/// Meeting Notes AI: WAV keeps the strict reader below; every other
+/// supported format (m4a/AAC voice memos, mp3, flac, ogg) goes through the
+/// `mna_core` decoder, which also mixes multi-channel audio down to mono.
+fn load_audio(path: &Path) -> Result<WavAudio, String> {
+    let is_wav = path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("wav"));
+    if is_wav {
+        return load_wav(path);
+    }
+    let decoded = mna_core::audio_decode::decode_file_to_mono(path, &|| false)
+        .map_err(|e| format!("'{}': {e}", path.display()))?;
+    Ok(WavAudio {
+        samples: decoded.samples,
+        sample_rate: decoded.sample_rate,
+    })
 }
 
 /// Load a mono WAV file as f32 samples in `[-1.0, 1.0]`. Supports 16-bit PCM

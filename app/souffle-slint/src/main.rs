@@ -12,6 +12,7 @@ mod cleaned_ui;
 mod data_ui;
 mod edit_learning;
 mod ia_ui;
+mod import_ui;
 mod keyboard_layout;
 mod lists_ui;
 mod live_edit;
@@ -4675,6 +4676,7 @@ fn wire_callbacks(
     });
 
     cleaned_ui::wire(window, tauri_handle.clone());
+    import_ui::wire(window, tauri_handle.clone());
 
     let weak_sum = window.as_weak();
     let handle_sum = tauri_handle.clone();

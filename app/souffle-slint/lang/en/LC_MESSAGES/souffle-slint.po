@@ -3417,3 +3417,43 @@ msgstr "Cleaned"
 msgctxt "MeetingDetail"
 msgid "Comparaison"
 msgstr "Comparison"
+
+msgctxt "AudioImportRow"
+msgid "Importer un fichier audio…"
+msgstr "Import audio file…"
+
+msgctxt "AudioImportRow"
+msgid "Lecture de « {} » ({}/{})…"
+msgstr "Reading “{}” ({}/{})…"
+
+msgctxt "AudioImportRow"
+msgid "Chargement du modèle de transcription…"
+msgstr "Loading the transcription model…"
+
+msgctxt "AudioImportRow"
+msgid "Transcription de « {} » : {} % ({}/{})"
+msgstr "Transcribing “{}”: {}% ({}/{})"
+
+msgctxt "AudioImportRow"
+msgid "Enregistrement de la réunion…"
+msgstr "Saving the meeting…"
+
+msgctxt "AudioImportRow"
+msgid "Annuler"
+msgstr "Cancel"
+
+msgctxt "AudioImportRow"
+msgid "Importation terminée : {} réunion(s) ajoutée(s) à l'historique."
+msgstr "Import finished: {} meeting(s) added to the history."
+
+msgctxt "AudioImportRow"
+msgid "Échec de l'importation : {}"
+msgstr "Import failed: {}"
+
+msgctxt "AudioImportRow"
+msgid "OK"
+msgstr "OK"
+
+msgctxt "AudioImportRow"
+msgid "Mémos vocaux et fichiers audio (m4a, mp3, wav, flac, ogg) deviennent des réunions : transcription, résumé et nettoyage par IA."
+msgstr "Voice memos and audio files (m4a, mp3, wav, flac, ogg) become meetings: transcript, summary and AI cleanup."

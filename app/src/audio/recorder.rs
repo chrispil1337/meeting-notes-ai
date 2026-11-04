@@ -682,6 +682,54 @@ fn finalize_recorder_writer<W: Write>(
     }
 }
 
+/// Meeting Notes AI: encode a whole mono buffer (an imported audio file) to
+/// an Ogg Opus file at `path`, the same mono format meeting recordings use,
+/// so the player, waveform and audio export work on imports too. Written to
+/// a temporary file first and renamed, so a failed import leaves no
+/// half-written recording behind.
+pub fn write_mono_ogg_opus(
+    path: &std::path::Path,
+    samples: &[f32],
+    sample_rate: u32,
+) -> Result<(), String> {
+    /// One second at 48 kHz: keeps the resampler's buffers small.
+    const CHUNK: usize = 48_000;
+
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| format!("Create recordings dir: {e}"))?;
+    }
+    let encode_rate = nearest_opus_rate(sample_rate);
+    let tmp = path.with_extension("ogg.import.tmp");
+    let result = (|| {
+        let file =
+            std::fs::File::create(&tmp).map_err(|e| format!("Create recording file: {e}"))?;
+        let mut writer =
+            OggOpusWriter::new(std::io::BufWriter::new(file), encode_rate, Channels::Mono)?;
+        if encode_rate == sample_rate {
+            for chunk in samples.chunks(CHUNK) {
+                writer.write_chunk(chunk)?;
+            }
+        } else {
+            let mut resampler = super::resampler::Resampler::new(sample_rate, 1, encode_rate, 1.0);
+            for chunk in samples.chunks(CHUNK) {
+                writer.write_chunk(&resampler.process(chunk))?;
+            }
+            writer.write_chunk(&resampler.flush())?;
+        }
+        writer.finish()
+    })();
+    match result {
+        Ok(()) => std::fs::rename(&tmp, path).map_err(|e| {
+            let _ = std::fs::remove_file(&tmp);
+            format!("Commit recording file: {e}")
+        }),
+        Err(error) => {
+            let _ = std::fs::remove_file(&tmp);
+            Err(error)
+        }
+    }
+}
+
 /// Feeds f32 PCM (mono, or L/R interleaved stereo — fixed at `start`) to a
 /// background writer thread that encodes it to an Ogg Opus file. One
 /// instance per recording session (see `capture::AudioCapture`'s recorder
@@ -885,6 +933,22 @@ mod tests {
                     as f32
             })
             .collect()
+    }
+
+    #[test]
+    fn write_mono_ogg_opus_round_trips_an_imported_buffer() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("0.ogg");
+        // Two seconds of a 440 Hz tone at 44.1 kHz (resampled to 48 kHz).
+        let samples: Vec<f32> = (0..88_200)
+            .map(|i| (i as f32 * 440.0 * std::f32::consts::TAU / 44_100.0).sin() * 0.3)
+            .collect();
+        write_mono_ogg_opus(&path, &samples, 44_100).unwrap();
+        assert!(path.is_file());
+        assert!(!path.with_extension("ogg.import.tmp").exists());
+        let decoded = decode_ogg_opus(&path).unwrap();
+        let seconds = decoded.len() as f64 / f64::from(DECODE_RATE);
+        assert!((seconds - 2.0).abs() < 0.1, "decoded {seconds}s");
     }
 
     #[test]

@@ -185,6 +185,18 @@ export component MainWindow inherits Window {
     in property <[string]> meeting-detail-summary-available-model-ids;
     in-out property <string> meeting-detail-summary-selected-model-id;
     in-out property <string> meeting-detail-summary-selected-model-label;
+    // Meeting Notes AI: audio file import on the home page.
+    in property <bool> import-busy: false;
+    in property <string> import-file-name;
+    in property <int> import-file-index;
+    in property <int> import-file-count;
+    in property <int> import-stage;
+    in property <int> import-percent;
+    in property <string> import-error;
+    in-out property <int> import-imported-count;
+    callback import-requested();
+    callback import-cancel-requested();
+    callback import-dismissed();
     // Meeting Notes AI: AI-cleaned transcript (0 original, 1 cleaned, 2 compare).
     in-out property <int> meeting-detail-transcript-view: 0;
     in property <bool> meeting-detail-cleaned-has: false;
@@ -733,6 +745,17 @@ export component MainWindow inherits Window {
         upcoming: root.upcoming-events;
         dictate-requested => { root.dictate-requested(); }
         meeting-requested => { root.meeting-requested(); }
+        import-busy: root.import-busy;
+        import-file-name: root.import-file-name;
+        import-file-index: root.import-file-index;
+        import-file-count: root.import-file-count;
+        import-stage: root.import-stage;
+        import-percent: root.import-percent;
+        import-error: root.import-error;
+        import-imported-count: root.import-imported-count;
+        import-requested => { root.import-requested(); }
+        import-cancel-requested => { root.import-cancel-requested(); }
+        import-dismissed => { root.import-dismissed(); }
         filter-changed(kind) => { root.filter-changed(kind); }
         search-changed(query) => { root.search-changed(query); }
         dismiss-transcription-status => { root.dismiss-transcription-status(); }

@@ -7,6 +7,7 @@ import { MicStallBanner } from "components/mic_stall_banner.slint";
 import { TimelineSection, TimelineDayGroup, UpcomingEvent } from "components/timeline_section.slint";
 import { FilterChip } from "components/filter_chip.slint";
 import { DictationRecovery } from "components/dictation_recovery.slint";
+import { AudioImportRow } from "components/audio_import_row.slint";
 import { TimelineFilter, TimelineKind, AccessState, MicStall } from "types.slint";
 
 // Port of components/HomeView.svelte's idle branch. The hero, search, and
@@ -36,6 +37,18 @@ export component IdleView inherits Rectangle {
     in property <bool> calendar-enabled: false;
     in property <AccessState> calendar-permission;
     in property <[UpcomingEvent]> upcoming;
+    // Meeting Notes AI: audio file import (see AudioImportRow).
+    in property <bool> import-busy: false;
+    in property <string> import-file-name;
+    in property <int> import-file-index;
+    in property <int> import-file-count;
+    in property <int> import-stage;
+    in property <int> import-percent;
+    in property <string> import-error;
+    in property <int> import-imported-count;
+    callback import-requested();
+    callback import-cancel-requested();
+    callback import-dismissed();
 
     callback dictate-requested();
     callback meeting-requested();
@@ -132,6 +145,22 @@ export component IdleView inherits Rectangle {
             actions-enabled: root.dictation-recovery-text == "" && !root.dictation-finalizing;
             dictate-requested => { root.dictate-requested(); }
             meeting-requested => { root.meeting-requested(); }
+        }
+
+        AudioImportRow {
+            vertical-stretch: 0;
+            enabled: root.dictation-recovery-text == "" && !root.dictation-finalizing;
+            busy: root.import-busy;
+            file-name: root.import-file-name;
+            file-index: root.import-file-index;
+            file-count: root.import-file-count;
+            stage: root.import-stage;
+            percent: root.import-percent;
+            error: root.import-error;
+            imported-count: root.import-imported-count;
+            import-requested => { root.import-requested(); }
+            cancel-requested => { root.import-cancel-requested(); }
+            dismissed => { root.import-dismissed(); }
         }
 
         SearchField {
