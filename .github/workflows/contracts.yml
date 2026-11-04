@@ -48,9 +48,9 @@ jobs:
       # These crates exercise SQL contracts, paragraph grouping, MCP queries,
       # bundled fonts and UI typography without compiling Slint/Metal/audio.
       - name: Clippy (portable crates)
-        run: cargo clippy --locked --manifest-path app/Cargo.toml -p souffle-schema -p souffle-mcp -p souffle-typography --all-targets -- -D warnings
+        run: cargo clippy --locked --manifest-path app/Cargo.toml -p souffle-schema -p souffle-mcp -p souffle-typography -p mna-core --all-targets -- -D warnings
       - name: Tests (portable crates)
-        run: cargo test --locked --manifest-path app/Cargo.toml -p souffle-schema -p souffle-mcp -p souffle-typography
+        run: cargo test --locked --manifest-path app/Cargo.toml -p souffle-schema -p souffle-mcp -p souffle-typography -p mna-core
 
   native:
     name: Full native checks
