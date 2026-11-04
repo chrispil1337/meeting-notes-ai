@@ -14,6 +14,21 @@ use souffle_lib::summary::transcript_cleanup::CleanupProgress;
 
 use crate::{CleanedDiffPiece, CleanedSegmentRow, MainWindow, SpeakerRole};
 
+thread_local! {
+    /// Meeting whose cleanup is running (one at a time). The page shows the
+    /// running state only while that meeting is open.
+    static CLEANING_MEETING: std::cell::RefCell<Option<String>> =
+        const { std::cell::RefCell::new(None) };
+}
+
+fn cleaning_meeting() -> Option<String> {
+    CLEANING_MEETING.with(|cell| cell.borrow().clone())
+}
+
+fn set_cleaning_meeting(id: Option<String>) {
+    CLEANING_MEETING.with(|cell| *cell.borrow_mut() = id);
+}
+
 /// Diff kinds understood by `CleanedDiffPiece.kind`.
 const KIND_EQUAL: i32 = 0;
 const KIND_REMOVED: i32 = 1;
@@ -129,9 +144,16 @@ pub(crate) fn populate_cleaned(
     show_cleaned(window, cleaned.as_ref(), current_segment_count);
 }
 
-/// Reset the transient cleanup state when another meeting opens.
-pub(crate) fn reset_cleanup_status(window: &MainWindow) {
+/// Reset the transient cleanup state when a meeting opens: the running
+/// state only shows on the meeting being cleaned.
+pub(crate) fn reset_cleanup_status(window: &MainWindow, meeting_id: &str) {
     window.set_meeting_detail_cleaned_error("".into());
+    let running_here = cleaning_meeting().as_deref() == Some(meeting_id);
+    window.set_meeting_detail_cleaned_is_generating(running_here);
+    if !running_here {
+        window.set_meeting_detail_cleaned_progress_done(0);
+        window.set_meeting_detail_cleaned_progress_total(0);
+    }
 }
 
 pub(crate) fn wire(window: &MainWindow, state: Arc<AppState>) {
@@ -141,7 +163,10 @@ pub(crate) fn wire(window: &MainWindow, state: Arc<AppState>) {
         let Some(window) = weak.upgrade() else {
             return;
         };
-        if window.get_meeting_detail_cleaned_is_generating() {
+        if cleaning_meeting().is_some() {
+            window.set_meeting_detail_cleaned_error(
+                "Another transcript is being cleaned. Try again when it is done.".into(),
+            );
             return;
         }
         let id = window.get_active_meeting_id().to_string();
@@ -155,6 +180,7 @@ pub(crate) fn wire(window: &MainWindow, state: Arc<AppState>) {
             window.set_meeting_detail_cleaned_error("No AI model selected".into());
             return;
         }
+        set_cleaning_meeting(Some(id.clone()));
         window.set_meeting_detail_cleaned_is_generating(true);
         window.set_meeting_detail_cleaned_error("".into());
         window.set_meeting_detail_cleaned_progress_done(0);
@@ -190,16 +216,18 @@ pub(crate) fn wire(window: &MainWindow, state: Arc<AppState>) {
             )
             .await;
             let _ = slint::invoke_from_event_loop(move || {
+                set_cleaning_meeting(None);
                 let Some(w) = weak_done.upgrade() else {
                     return;
                 };
-                w.set_meeting_detail_cleaned_is_generating(false);
                 if w.get_active_meeting_id().as_str() != id {
+                    // Another meeting is open; its page never showed this run.
                     if let Err(error) = result {
                         eprintln!("Transcript cleanup of meeting {id} failed: {error}");
                     }
                     return;
                 }
+                w.set_meeting_detail_cleaned_is_generating(false);
                 match result {
                     Ok(cleaned) => {
                         show_cleaned(&w, Some(&cleaned), cleaned.source_segment_count);
