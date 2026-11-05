@@ -118,12 +118,13 @@ pub fn set_ollama_cloud_api_key(key: &str) -> Result<(), String> {
     Ok(())
 }
 
-#[cfg(test)]
+// The real Keychain is not touched from tests; the in-memory store only
+// exists off macOS.
+#[cfg(all(test, not(target_os = "macos")))]
 mod tests {
     use super::*;
 
     #[test]
-    #[cfg(not(target_os = "macos"))]
     fn store_read_and_delete_key() {
         set_ollama_cloud_api_key("  secret-key  ").unwrap();
         assert_eq!(ollama_cloud_api_key().as_deref(), Some("secret-key"));
