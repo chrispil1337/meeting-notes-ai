@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use mna_core::cleanup::{CleanupFlag, format_timestamp};
 use mna_core::diff::{DiffOp, word_diff};
-use slint::{ModelRc, VecModel};
+use slint::{ComponentHandle, ModelRc, VecModel};
 use souffle_lib::db::cleaned::{CleanedSegmentRecord, CleanedTranscript};
 use souffle_lib::progress::ProgressChannel;
 use souffle_lib::state::AppState;

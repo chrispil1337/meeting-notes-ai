@@ -11,6 +11,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use souffle_lib::import::{ImportProgress, ImportStage};
 use souffle_lib::state::AppState;
 
+use slint::ComponentHandle;
+
 use crate::MainWindow;
 
 fn stage_index(stage: ImportStage) -> i32 {
